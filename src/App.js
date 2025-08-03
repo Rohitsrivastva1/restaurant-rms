@@ -2,6 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
+// Context
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+
 // Layout Components
 import DashboardLayout from './components/Layout/DashboardLayout';
 
@@ -9,6 +12,7 @@ import DashboardLayout from './components/Layout/DashboardLayout';
 import Login from './components/Auth/Login';
 import Logout from './components/Auth/Logout';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import SuperAdminSignup from './components/Auth/SuperAdminSignup';
 
 // SuperAdmin Components
 import SuperAdminDashboard from './components/SuperAdmin/Dashboard';
@@ -35,15 +39,20 @@ import ChefProfile from './components/Chef/ChefProfile';
 // Customer Components
 import MenuScreen from './components/Customer/MenuScreen';
 
-function App() {
-  // Get user from localStorage
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
+function AppContent() {
+  const { user, loading } = useAuth();
 
   const renderDashboardRoutes = () => {
-    if (!user) return <Navigate to="/login" replace />;
+    if (loading) {
+      return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    }
+    
+    if (!user) {
+      return <Navigate to="/login" replace />;
+    }
     
     switch (user.role) {
-      case 'superadmin':
+      case 'super_admin':
         return (
           <Routes>
             <Route path="/superadmin" element={<SuperAdminDashboard />} />
@@ -93,6 +102,7 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/superadmin-signup" element={<SuperAdminSignup />} />
           <Route path="/customer" element={<MenuScreen />} />
           <Route path="/order" element={<MenuScreen />} />
           
@@ -110,6 +120,14 @@ function App() {
         </Routes>
       </div>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

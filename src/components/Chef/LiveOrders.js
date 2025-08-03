@@ -5,82 +5,60 @@ import {
   Play,
   Timer,
   Users,
-  ChefHat
+  ChefHat,
+  RefreshCw
 } from 'lucide-react';
-
-// Mock data
-const mockOrders = [
-  {
-    id: 1,
-    tableNumber: 3,
-    items: [
-      { name: 'Butter Chicken', quantity: 2, notes: 'Extra spicy' },
-      { name: 'Naan', quantity: 3 },
-      { name: 'Paneer Tikka', quantity: 1, notes: 'Less spicy' }
-    ],
-    status: 'received',
-    timestamp: new Date(Date.now() - 5 * 60000), // 5 minutes ago
-    totalAmount: 1250,
-    estimatedTime: 15,
-  },
-  {
-    id: 2,
-    tableNumber: 5,
-    items: [
-      { name: 'Biryani', quantity: 1 },
-      { name: 'Raita', quantity: 1 }
-    ],
-    status: 'in_progress',
-    timestamp: new Date(Date.now() - 8 * 60000), // 8 minutes ago
-    totalAmount: 450,
-    estimatedTime: 12,
-  },
-  {
-    id: 3,
-    tableNumber: 2,
-    items: [
-      { name: 'Chicken Tikka', quantity: 2 },
-      { name: 'Dal Makhani', quantity: 1 },
-      { name: 'Roti', quantity: 4 }
-    ],
-    status: 'ready',
-    timestamp: new Date(Date.now() - 12 * 60000), // 12 minutes ago
-    totalAmount: 890,
-    estimatedTime: 10,
-  },
-];
+import { orderAPI, apiUtils } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LiveOrders = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
+  // Fetch orders from API
   useEffect(() => {
-    setOrders(mockOrders);
-    
-    // Simulate new orders coming in
-    const interval = setInterval(() => {
-      // Add random new order every 30 seconds
-      if (Math.random() > 0.7) {
-        const newOrder = {
-          id: Date.now(),
-          tableNumber: Math.floor(Math.random() * 10) + 1,
-          items: [
-            { name: 'Butter Chicken', quantity: Math.floor(Math.random() * 3) + 1 },
-            { name: 'Naan', quantity: Math.floor(Math.random() * 3) + 1 }
-          ],
-          status: 'received',
-          timestamp: new Date(),
-          totalAmount: Math.floor(Math.random() * 1000) + 200,
-          estimatedTime: Math.floor(Math.random() * 20) + 10,
-        };
-        setOrders(prev => [newOrder, ...prev]);
-        
-        // Play notification sound (in real app)
-        console.log('New order received!');
-      }
-    }, 30000);
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-    return () => clearInterval(interval);
-  }, []);
+        const response = await orderAPI.getAll({
+          restaurantId: user?.restaurantId,
+          status: ['received', 'in_progress', 'ready']
+        });
+        setOrders(response.data);
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.restaurantId) {
+      fetchOrders();
+      
+      // Set up real-time updates every 30 seconds
+      const interval = setInterval(fetchOrders, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.restaurantId]);
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      setLoading(true);
+      await orderAPI.updateStatus(orderId, newStatus);
+      
+      setOrders(prev => prev.map(order => 
+        order.id === orderId ? { ...order, status: newStatus } : order
+      ));
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -91,19 +69,49 @@ const LiveOrders = () => {
     }
   };
 
-
-
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
-  };
-
   const getTimeAgo = (timestamp) => {
+    if (!timestamp) return 'N/A';
     const now = new Date();
-    const diff = Math.floor((now - timestamp) / 60000); // minutes
+    const orderTime = new Date(timestamp);
+    const diff = Math.floor((now - orderTime) / 60000); // minutes
     return `${diff} min ago`;
   };
+
+  const getEstimatedTime = (order) => {
+    // Calculate estimated time based on items and complexity
+    const totalItems = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    const baseTime = 10; // Base 10 minutes
+    const itemTime = totalItems * 2; // 2 minutes per item
+    return Math.min(baseTime + itemTime, 30); // Max 30 minutes
+  };
+
+  if (loading && orders.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-2">Error loading orders</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -113,6 +121,13 @@ const LiveOrders = () => {
           <p className="text-gray-600">Manage incoming kitchen orders</p>
         </div>
         <div className="flex items-center space-x-4">
+          <button
+            onClick={() => window.location.reload()}
+            className="flex items-center space-x-2 text-blue-600 hover:text-blue-800"
+          >
+            <RefreshCw className="w-5 h-5" />
+            <span>Refresh</span>
+          </button>
           <div className="flex items-center space-x-2">
             <ChefHat className="w-6 h-6 text-orange-500" />
             <span className="text-lg font-semibold text-gray-900">
@@ -163,7 +178,14 @@ const LiveOrders = () => {
 
       {/* Orders Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {orders.map((order) => (
+        {orders.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <ChefHat className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Orders</h3>
+            <p className="text-gray-600">No orders in the queue at the moment.</p>
+          </div>
+        ) : (
+          orders.map((order) => (
           <div 
             key={order.id} 
             className={`bg-white rounded-lg shadow-lg border-2 ${
@@ -178,7 +200,7 @@ const LiveOrders = () => {
                 <div className="flex items-center space-x-2">
                   <Users className="w-5 h-5 text-gray-500" />
                   <span className="text-lg font-bold text-gray-900">
-                    Table {order.tableNumber}
+                    Table {order.tableNumber || 'N/A'}
                   </span>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
@@ -187,15 +209,15 @@ const LiveOrders = () => {
               </div>
               
               <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>{getTimeAgo(order.timestamp)}</span>
-                <span>₹{order.totalAmount}</span>
+                <span>{getTimeAgo(order.createdAt)}</span>
+                <span>₹{order.totalAmount?.toLocaleString() || 'N/A'}</span>
               </div>
             </div>
 
             {/* Order Items */}
             <div className="p-4">
               <div className="space-y-2 mb-4">
-                {order.items.map((item, index) => (
+                {order.items?.map((item, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <div>
                       <span className="font-medium text-gray-900">{item.name}</span>
@@ -205,7 +227,9 @@ const LiveOrders = () => {
                     </div>
                     <span className="text-sm text-gray-600">x{item.quantity}</span>
                   </div>
-                ))}
+                )) || (
+                  <div className="text-gray-500 text-sm">No items available</div>
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -232,7 +256,7 @@ const LiveOrders = () => {
                 
                 {order.status === 'ready' && (
                   <button
-                    onClick={() => setOrders(prev => prev.filter(o => o.id !== order.id))}
+                    onClick={() => updateOrderStatus(order.id, 'completed')}
                     className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 flex items-center justify-center space-x-2"
                   >
                     <CheckCircle className="w-4 h-4" />
@@ -240,17 +264,31 @@ const LiveOrders = () => {
                   </button>
                 )}
               </div>
+
+              {/* Order Details */}
+              <div className="mt-3 text-xs text-gray-500">
+                <div className="flex justify-between">
+                  <span>Order ID: #{order.id}</span>
+                  <span>Est. Time: {getEstimatedTime(order)} min</span>
+                </div>
+                {order.customerName && (
+                  <div className="mt-1">
+                    <span>Customer: {order.customerName}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
-      {/* Empty State */}
-      {orders.length === 0 && (
-        <div className="text-center py-12">
-          <ChefHat className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Orders</h3>
-          <p className="text-gray-600">No orders in the queue at the moment.</p>
+      {/* Loading indicator for updates */}
+      {loading && orders.length > 0 && (
+        <div className="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
+          <div className="flex items-center space-x-2">
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span>Updating orders...</span>
+          </div>
         </div>
       )}
     </div>

@@ -76,19 +76,48 @@ GET /superadmin/dashboard
 **Response:**
 ```json
 {
-  "totalRestaurants": 60,
-  "pendingVerifications": 12,
-  "activeRestaurants": 45,
-  "totalOrdersToday": 1234,
-  "orderTrend": [
-    {"day": "Mon", "orders": 45},
-    {"day": "Tue", "orders": 52}
+  "todayStats": {
+    "totalOrders": 1234,
+    "totalRevenue": 45678.90,
+    "averageOrderValue": 37.02
+  },
+  "recentActivity": [
+    {
+      "id": 1,
+      "type": "order",
+      "message": "Order #ORD123 completed",
+      "time": "2024-01-15T10:30:00Z",
+      "restaurant": "Spice Garden",
+      "amount": 1250.00
+    }
   ],
-  "restaurantStatus": [
-    {"status": "active", "count": 45},
-    {"status": "pending", "count": 12},
-    {"status": "suspended", "count": 3}
+  "orderTrend": [
+    {"date": "2024-01-09", "orders": 45, "revenue": 1800},
+    {"date": "2024-01-10", "orders": 52, "revenue": 2100}
   ]
+}
+```
+
+### 2.2 Platform Statistics
+```http
+GET /superadmin/platform-stats
+```
+
+**Response:**
+```json
+{
+  "totalRestaurants": 60,
+  "activeRestaurants": 45,
+  "pendingRestaurants": 12,
+  "suspendedRestaurants": 3,
+  "totalUsers": 156,
+  "activeUsers": 142,
+  "totalOrders": 12345,
+  "totalRevenue": 456789.00,
+  "restaurantGrowth": "+5%",
+  "userGrowth": "+2%",
+  "orderGrowth": "+12%",
+  "revenueGrowth": "+8%"
 }
 ```
 
@@ -143,14 +172,43 @@ PUT /superadmin/restaurants/{id}/suspend
 
 ### 2.3 Admin User Management
 
-#### 2.3.1 Get All Admins
+#### 2.3.1 Get All Users
 ```http
-GET /superadmin/admins
+GET /superadmin/users
 ```
 
-#### 2.3.2 Create Admin
+**Query Parameters:**
+- `search`: Search by name, email, or restaurant
+- `role`: Filter by role (admin, manager, chef, waiter)
+- `status`: Filter by status (active, inactive)
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10)
+
+**Response:**
+```json
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Smith",
+      "email": "john@spicegarden.com",
+      "phone": "+91 98765 43210",
+      "role": "admin",
+      "restaurant": "Spice Garden",
+      "status": "active",
+      "lastLogin": "2024-01-15T10:30:00Z",
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 156,
+  "page": 1,
+  "limit": 10
+}
+```
+
+#### 2.3.2 Create User
 ```http
-POST /superadmin/admins
+POST /superadmin/users
 ```
 
 **Request Body:**
@@ -158,13 +216,58 @@ POST /superadmin/admins
 {
   "name": "New Admin",
   "email": "admin@restaurant.com",
+  "password": "securepassword123",
   "phone": "+91 98765 43211",
-  "restaurantId": 5,
-  "role": "admin"
+  "role": "admin",
+  "restaurantId": 5
 }
 ```
 
-#### 2.3.3 Reset Admin Password
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "user": {
+    "id": 1,
+    "name": "New Admin",
+    "email": "admin@restaurant.com",
+    "role": "admin",
+    "status": "active"
+  }
+}
+```
+
+#### 2.3.3 Update User
+```http
+PUT /superadmin/users/{id}
+```
+
+**Request Body:**
+```json
+{
+  "name": "Updated Name",
+  "email": "updated@restaurant.com",
+  "phone": "+91 98765 43212",
+  "role": "manager",
+  "isActive": true
+}
+```
+
+#### 2.3.4 Delete User
+```http
+DELETE /superadmin/users/{id}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User deleted successfully"
+}
+```
+
+#### 2.3.5 Reset Admin Password
 ```http
 PUT /superadmin/admins/{id}/reset-password
 ```

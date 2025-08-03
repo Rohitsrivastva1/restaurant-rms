@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   XAxis, 
   YAxis, 
@@ -17,71 +17,105 @@ import {
   DollarSign, 
   ChefHat
 } from 'lucide-react';
+import { orderAPI, restaurantAPI, apiUtils } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const AdminDashboard = () => {
-  // Mock data
-  const orderData = [
-    { time: '9AM', orders: 12 },
-    { time: '10AM', orders: 18 },
-    { time: '11AM', orders: 25 },
-    { time: '12PM', orders: 45 },
-    { time: '1PM', orders: 38 },
-    { time: '2PM', orders: 22 },
-    { time: '3PM', orders: 15 },
-    { time: '4PM', orders: 28 },
-  ];
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [dashboardData, setDashboardData] = useState({
+    orderData: [],
+    topItems: [],
+    tableStatus: [],
+    stats: [],
+    orderStatus: []
+  });
 
-  const topItems = [
-    { name: 'Butter Chicken', sales: 45, revenue: 2250 },
-    { name: 'Biryani', sales: 38, revenue: 1900 },
-    { name: 'Paneer Tikka', sales: 32, revenue: 1280 },
-    { name: 'Naan', sales: 28, revenue: 280 },
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-  const tableStatus = [
-    { table: 'Table 1', status: 'occupied', orders: 2 },
-    { table: 'Table 2', status: 'free', orders: 0 },
-    { table: 'Table 3', status: 'occupied', orders: 1 },
-    { table: 'Table 4', status: 'free', orders: 0 },
-    { table: 'Table 5', status: 'occupied', orders: 3 },
-  ];
+        // Fetch order statistics
+        const orderStats = await orderAPI.getStats();
+        
+        // Fetch restaurant statistics
+        const restaurantStats = await restaurantAPI.getStats();
 
-  const stats = [
-    {
-      title: 'Today\'s Orders',
-      value: '156',
-      change: '+12%',
-      icon: ShoppingCart,
-      color: 'bg-blue-500',
-    },
-    {
-      title: 'Revenue Today',
-      value: '₹12,450',
-      change: '+8%',
-      icon: DollarSign,
-      color: 'bg-green-500',
-    },
-    {
-      title: 'Active Tables',
-      value: '3/5',
-      change: '60%',
-      icon: Users,
-      color: 'bg-purple-500',
-    },
-    {
-      title: 'Kitchen Orders',
-      value: '8',
-      change: 'In Progress',
-      icon: ChefHat,
-      color: 'bg-orange-500',
-    },
-  ];
+        // Transform data for charts
+        const transformedData = {
+          orderData: orderStats.data?.hourlyOrders || [],
+          topItems: orderStats.data?.topItems || [],
+          tableStatus: restaurantStats.data?.tableStatus || [],
+          stats: [
+            {
+              title: 'Today\'s Orders',
+              value: orderStats.data?.todayOrders || '0',
+              change: orderStats.data?.orderChange || '0%',
+              icon: ShoppingCart,
+              color: 'bg-blue-500',
+            },
+            {
+              title: 'Revenue Today',
+              value: `₹${orderStats.data?.todayRevenue || '0'}`,
+              change: orderStats.data?.revenueChange || '0%',
+              icon: DollarSign,
+              color: 'bg-green-500',
+            },
+            {
+              title: 'Active Tables',
+              value: restaurantStats.data?.activeTables || '0',
+              change: restaurantStats.data?.tableOccupancy || '0%',
+              icon: Users,
+              color: 'bg-purple-500',
+            },
+            {
+              title: 'Kitchen Orders',
+              value: orderStats.data?.kitchenOrders || '0',
+              change: 'In Progress',
+              icon: ChefHat,
+              color: 'bg-orange-500',
+            },
+          ],
+          orderStatus: orderStats.data?.statusBreakdown || []
+        };
 
-  const orderStatus = [
-    { status: 'Received', count: 5, color: '#3B82F6' },
-    { status: 'In Progress', count: 3, color: '#F59E0B' },
-    { status: 'Ready', count: 2, color: '#10B981' },
-  ];
+        setDashboardData(transformedData);
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-2">Error loading dashboard</div>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -98,7 +132,7 @@ const AdminDashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+        {dashboardData.stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div key={index} className="bg-white rounded-lg shadow p-6">
@@ -126,7 +160,7 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Orders Today</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={orderData}>
+            <LineChart data={dashboardData.orderData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" />
               <YAxis />
@@ -142,7 +176,7 @@ const AdminDashboard = () => {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={orderStatus}
+                data={dashboardData.orderStatus}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -150,7 +184,7 @@ const AdminDashboard = () => {
                 paddingAngle={5}
                 dataKey="count"
               >
-                {orderStatus.map((entry, index) => (
+                {dashboardData.orderStatus.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -158,7 +192,7 @@ const AdminDashboard = () => {
             </PieChart>
           </ResponsiveContainer>
           <div className="mt-4 space-y-2">
-            {orderStatus.map((status, index) => (
+            {dashboardData.orderStatus.map((status, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div 
@@ -183,7 +217,7 @@ const AdminDashboard = () => {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {topItems.map((item, index) => (
+              {dashboardData.topItems.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{item.name}</p>
@@ -206,7 +240,7 @@ const AdminDashboard = () => {
           </div>
           <div className="p-6">
             <div className="grid grid-cols-2 gap-4">
-              {tableStatus.map((table, index) => (
+              {dashboardData.tableStatus.map((table, index) => (
                 <div 
                   key={index} 
                   className={`p-4 rounded-lg border ${

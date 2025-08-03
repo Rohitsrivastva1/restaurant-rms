@@ -19,7 +19,7 @@ const Sidebar = ({ role, user }) => {
 
   const getMenuItems = () => {
     switch (role) {
-      case 'superadmin':
+      case 'super_admin':
         return [
           { name: 'Dashboard', icon: Home, path: '/superadmin' },
           { name: 'Restaurants', icon: Building2, path: '/superadmin/restaurants' },
@@ -56,7 +56,7 @@ const Sidebar = ({ role, user }) => {
     <div className="w-64 bg-gray-900 min-h-screen p-4">
       <div className="mb-8">
         <h1 className="text-white text-xl font-bold">
-          {role === 'superadmin' ? 'Platform Admin' : 
+          {role === 'super_admin' ? 'Platform Admin' : 
            role === 'admin' ? 'Restaurant Manager' : 'Kitchen Display'}
         </h1>
         <p className="text-gray-400 text-sm">{user?.name || 'User'}</p>

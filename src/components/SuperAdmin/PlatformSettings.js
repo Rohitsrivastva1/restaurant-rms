@@ -1,54 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
-  CreditCard, 
-  Bell, 
+  Save, 
+  Globe, 
   Shield, 
-  Database, 
-  Save,
-  Eye,
-  EyeOff
+  CreditCard, 
+  Bell,
+  Database,
+  Key,
+  Mail,
+  Smartphone
 } from 'lucide-react';
+import { superAdminAPI, apiUtils } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PlatformSettings = () => {
-  const [activeTab, setActiveTab] = useState('general');
-  const [showPassword, setShowPassword] = useState(false);
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [settings, setSettings] = useState({
-    general: {
-      platformName: 'Restaurant Management Platform',
-      platformUrl: 'https://restaurant-platform.com',
-      timezone: 'Asia/Kolkata',
-      language: 'English',
-      maintenanceMode: false,
-      debugMode: false
-    },
-    payment: {
-      razorpayKey: 'rzp_test_1234567890',
-      razorpaySecret: 'secret_key_here',
-      commissionRate: 5.0,
-      autoPayout: true,
-      payoutSchedule: 'weekly'
-    },
+    platformName: 'Restaurant Management System',
+    supportEmail: 'support@rms.com',
+    supportPhone: '+91 98765 43210',
+    maxRestaurants: 1000,
+    maxUsersPerRestaurant: 50,
+    orderTimeout: 30,
+    paymentMethods: ['cash', 'card', 'upi'],
     notifications: {
-      emailNotifications: true,
-      smsNotifications: false,
-      pushNotifications: true,
-      orderAlerts: true,
-      systemAlerts: true,
-      marketingEmails: false
+      email: true,
+      sms: false,
+      push: true
     },
     security: {
-      sessionTimeout: 30,
-      maxLoginAttempts: 5,
-      twoFactorAuth: true,
-      passwordPolicy: 'strong',
-      ipWhitelist: []
-    },
-    integrations: {
-      twilioEnabled: true,
-      firebaseEnabled: true,
-      analyticsEnabled: true,
-      backupEnabled: true
+      passwordMinLength: 8,
+      requireTwoFactor: false,
+      sessionTimeout: 24
     }
   });
 
@@ -62,461 +48,319 @@ const PlatformSettings = () => {
     }));
   };
 
-  const tabs = [
-    { id: 'general', name: 'General', icon: Settings },
-    { id: 'payment', name: 'Payment', icon: CreditCard },
-    { id: 'notifications', name: 'Notifications', icon: Bell },
-    { id: 'security', name: 'Security', icon: Shield },
-    { id: 'integrations', name: 'Integrations', icon: Database }
-  ];
+  // Fetch settings from API
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-  const renderGeneralSettings = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Platform Name
-          </label>
-          <input
-            type="text"
-            value={settings.general.platformName}
-            onChange={(e) => handleSettingChange('general', 'platformName', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Platform URL
-          </label>
-          <input
-            type="url"
-            value={settings.general.platformUrl}
-            onChange={(e) => handleSettingChange('general', 'platformUrl', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Timezone
-          </label>
-          <select
-            value={settings.general.timezone}
-            onChange={(e) => handleSettingChange('general', 'timezone', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-            <option value="UTC">UTC</option>
-            <option value="America/New_York">America/New_York (EST)</option>
-            <option value="Europe/London">Europe/London (GMT)</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Language
-          </label>
-          <select
-            value={settings.general.language}
-            onChange={(e) => handleSettingChange('general', 'language', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="English">English</option>
-            <option value="Hindi">Hindi</option>
-            <option value="Spanish">Spanish</option>
-            <option value="French">French</option>
-          </select>
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Maintenance Mode</h4>
-            <p className="text-sm text-gray-500">Temporarily disable the platform for maintenance</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('general', 'maintenanceMode', !settings.general.maintenanceMode)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.general.maintenanceMode ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.general.maintenanceMode ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Debug Mode</h4>
-            <p className="text-sm text-gray-500">Enable detailed logging for development</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('general', 'debugMode', !settings.general.debugMode)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.general.debugMode ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.general.debugMode ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+        const response = await superAdminAPI.getSettings();
+        setSettings(response.data);
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const renderPaymentSettings = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Razorpay Key ID
-          </label>
-          <input
-            type="text"
-            value={settings.payment.razorpayKey}
-            onChange={(e) => handleSettingChange('payment', 'razorpayKey', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Razorpay Secret Key
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={settings.payment.razorpaySecret}
-              onChange={(e) => handleSettingChange('payment', 'razorpaySecret', e.target.value)}
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Commission Rate (%)
-          </label>
-          <input
-            type="number"
-            step="0.1"
-            value={settings.payment.commissionRate}
-            onChange={(e) => handleSettingChange('payment', 'commissionRate', parseFloat(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Payout Schedule
-          </label>
-          <select
-            value={settings.payment.payoutSchedule}
-            onChange={(e) => handleSettingChange('payment', 'payoutSchedule', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-        </div>
-      </div>
-      
-      <div className="flex items-center justify-between">
-        <div>
-          <h4 className="text-sm font-medium text-gray-900">Auto Payout</h4>
-          <p className="text-sm text-gray-500">Automatically process payouts to restaurants</p>
-        </div>
-        <button
-          onClick={() => handleSettingChange('payment', 'autoPayout', !settings.payment.autoPayout)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            settings.payment.autoPayout ? 'bg-blue-600' : 'bg-gray-200'
-          }`}
-        >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            settings.payment.autoPayout ? 'translate-x-6' : 'translate-x-1'
-          }`} />
-        </button>
-      </div>
-    </div>
-  );
+    if (user?.role === 'super_admin') {
+      fetchSettings();
+    }
+  }, [user?.role]);
 
-  const renderNotificationSettings = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Email Notifications</h4>
-            <p className="text-sm text-gray-500">Send notifications via email</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('notifications', 'emailNotifications', !settings.notifications.emailNotifications)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.notifications.emailNotifications ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.notifications.emailNotifications ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-        
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">SMS Notifications</h4>
-            <p className="text-sm text-gray-500">Send notifications via SMS</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('notifications', 'smsNotifications', !settings.notifications.smsNotifications)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.notifications.smsNotifications ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.notifications.smsNotifications ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-        
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Push Notifications</h4>
-            <p className="text-sm text-gray-500">Send push notifications to mobile apps</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('notifications', 'pushNotifications', !settings.notifications.pushNotifications)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.notifications.pushNotifications ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.notifications.pushNotifications ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-        
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Order Alerts</h4>
-            <p className="text-sm text-gray-500">Notify about new orders</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('notifications', 'orderAlerts', !settings.notifications.orderAlerts)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.notifications.orderAlerts ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.notifications.orderAlerts ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderSecuritySettings = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Session Timeout (minutes)
-          </label>
-          <input
-            type="number"
-            value={settings.security.sessionTimeout}
-            onChange={(e) => handleSettingChange('security', 'sessionTimeout', parseInt(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Max Login Attempts
-          </label>
-          <input
-            type="number"
-            value={settings.security.maxLoginAttempts}
-            onChange={(e) => handleSettingChange('security', 'maxLoginAttempts', parseInt(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Password Policy
-          </label>
-          <select
-            value={settings.security.passwordPolicy}
-            onChange={(e) => handleSettingChange('security', 'passwordPolicy', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="weak">Weak (6+ characters)</option>
-            <option value="medium">Medium (8+ characters, 1 uppercase)</option>
-            <option value="strong">Strong (10+ characters, mixed case, numbers, symbols)</option>
-          </select>
-        </div>
-      </div>
-      
-      <div className="flex items-center justify-between">
-        <div>
-          <h4 className="text-sm font-medium text-gray-900">Two-Factor Authentication</h4>
-          <p className="text-sm text-gray-500">Require 2FA for all admin accounts</p>
-        </div>
-        <button
-          onClick={() => handleSettingChange('security', 'twoFactorAuth', !settings.security.twoFactorAuth)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            settings.security.twoFactorAuth ? 'bg-blue-600' : 'bg-gray-200'
-          }`}
-        >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            settings.security.twoFactorAuth ? 'translate-x-6' : 'translate-x-1'
-          }`} />
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderIntegrationSettings = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Twilio Integration</h4>
-            <p className="text-sm text-gray-500">SMS notifications via Twilio</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('integrations', 'twilioEnabled', !settings.integrations.twilioEnabled)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.integrations.twilioEnabled ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.integrations.twilioEnabled ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-        
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Firebase Integration</h4>
-            <p className="text-sm text-gray-500">Push notifications via Firebase</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('integrations', 'firebaseEnabled', !settings.integrations.firebaseEnabled)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.integrations.firebaseEnabled ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.integrations.firebaseEnabled ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-        
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Analytics</h4>
-            <p className="text-sm text-gray-500">Track platform usage and performance</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('integrations', 'analyticsEnabled', !settings.integrations.analyticsEnabled)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.integrations.analyticsEnabled ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.integrations.analyticsEnabled ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-        
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">Auto Backup</h4>
-            <p className="text-sm text-gray-500">Automatically backup data</p>
-          </div>
-          <button
-            onClick={() => handleSettingChange('integrations', 'backupEnabled', !settings.integrations.backupEnabled)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.integrations.backupEnabled ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              settings.integrations.backupEnabled ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'general':
-        return renderGeneralSettings();
-      case 'payment':
-        return renderPaymentSettings();
-      case 'notifications':
-        return renderNotificationSettings();
-      case 'security':
-        return renderSecuritySettings();
-      case 'integrations':
-        return renderIntegrationSettings();
-      default:
-        return renderGeneralSettings();
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await superAdminAPI.updateSettings(settings);
+      alert('Settings saved successfully!');
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-2">Error loading settings</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Platform Settings</h1>
-          <p className="text-gray-600">Configure system-wide settings and preferences</p>
-        </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
-          <Save className="w-5 h-5" />
-          <span>Save Changes</span>
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.name}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Tab Content */}
+      {/* Header */}
       <div className="bg-white rounded-lg shadow p-6">
-        {renderTabContent()}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Platform Settings</h1>
+            <p className="text-gray-600 mt-2">Configure platform-wide settings and preferences</p>
+          </div>
+          <button
+            onClick={handleSave}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Settings
+          </button>
+        </div>
+      </div>
+
+      {/* General Settings */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center mb-6">
+          <Globe className="h-6 w-6 text-blue-600 mr-3" />
+          <h2 className="text-lg font-semibold text-gray-900">General Settings</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Platform Name
+            </label>
+            <input
+              type="text"
+              value={settings.platformName}
+              onChange={(e) => setSettings(prev => ({ ...prev, platformName: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Support Email
+            </label>
+            <input
+              type="email"
+              value={settings.supportEmail}
+              onChange={(e) => setSettings(prev => ({ ...prev, supportEmail: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Support Phone
+            </label>
+            <input
+              type="tel"
+              value={settings.supportPhone}
+              onChange={(e) => setSettings(prev => ({ ...prev, supportPhone: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Maximum Restaurants
+            </label>
+            <input
+              type="number"
+              value={settings.maxRestaurants}
+              onChange={(e) => setSettings(prev => ({ ...prev, maxRestaurants: parseInt(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Security Settings */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center mb-6">
+          <Shield className="h-6 w-6 text-green-600 mr-3" />
+          <h2 className="text-lg font-semibold text-gray-900">Security Settings</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Minimum Password Length
+            </label>
+            <input
+              type="number"
+              value={settings.security.passwordMinLength}
+              onChange={(e) => handleSettingChange('security', 'passwordMinLength', parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Session Timeout (hours)
+            </label>
+            <input
+              type="number"
+              value={settings.security.sessionTimeout}
+              onChange={(e) => handleSettingChange('security', 'sessionTimeout', parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="requireTwoFactor"
+              checked={settings.security.requireTwoFactor}
+              onChange={(e) => handleSettingChange('security', 'requireTwoFactor', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="requireTwoFactor" className="ml-2 block text-sm text-gray-900">
+              Require Two-Factor Authentication
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Settings */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center mb-6">
+          <CreditCard className="h-6 w-6 text-purple-600 mr-3" />
+          <h2 className="text-lg font-semibold text-gray-900">Payment Settings</h2>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Order Timeout (minutes)
+            </label>
+            <input
+              type="number"
+              value={settings.orderTimeout}
+              onChange={(e) => setSettings(prev => ({ ...prev, orderTimeout: parseInt(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Available Payment Methods
+            </label>
+            <div className="space-y-2">
+              {['cash', 'card', 'upi', 'wallet'].map(method => (
+                <label key={method} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={settings.paymentMethods.includes(method)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSettings(prev => ({
+                          ...prev,
+                          paymentMethods: [...prev.paymentMethods, method]
+                        }));
+                      } else {
+                        setSettings(prev => ({
+                          ...prev,
+                          paymentMethods: prev.paymentMethods.filter(m => m !== method)
+                        }));
+                      }
+                    }}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-900 capitalize">{method}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Notification Settings */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center mb-6">
+          <Bell className="h-6 w-6 text-yellow-600 mr-3" />
+          <h2 className="text-lg font-semibold text-gray-900">Notification Settings</h2>
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="emailNotifications"
+              checked={settings.notifications.email}
+              onChange={(e) => handleSettingChange('notifications', 'email', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="emailNotifications" className="ml-2 flex items-center text-sm text-gray-900">
+              <Mail className="h-4 w-4 mr-2" />
+              Email Notifications
+            </label>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="smsNotifications"
+              checked={settings.notifications.sms}
+              onChange={(e) => handleSettingChange('notifications', 'sms', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="smsNotifications" className="ml-2 flex items-center text-sm text-gray-900">
+              <Smartphone className="h-4 w-4 mr-2" />
+              SMS Notifications
+            </label>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="pushNotifications"
+              checked={settings.notifications.push}
+              onChange={(e) => handleSettingChange('notifications', 'push', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="pushNotifications" className="ml-2 flex items-center text-sm text-gray-900">
+              <Bell className="h-4 w-4 mr-2" />
+              Push Notifications
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* System Information */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center mb-6">
+          <Database className="h-6 w-6 text-gray-600 mr-3" />
+          <h2 className="text-lg font-semibold text-gray-900">System Information</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Database Version
+            </label>
+            <p className="text-sm text-gray-900">PostgreSQL 14.0</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              API Version
+            </label>
+            <p className="text-sm text-gray-900">v1.0.0</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Last Backup
+            </label>
+            <p className="text-sm text-gray-900">2024-01-15 02:00:00</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              System Status
+            </label>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+              Operational
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

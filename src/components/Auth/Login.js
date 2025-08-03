@@ -9,11 +9,14 @@ import {
   ChefHat, 
   Users,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Crown
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, error: authError, clearError } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -62,63 +65,44 @@ const Login = () => {
     setIsLoading(true);
     setError('');
     setSuccess('');
+    clearError();
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = await login(formData);
       
-      // Mock authentication logic
-      const mockUsers = {
-        admin: {
-          email: 'admin@spicegarden.com',
-          password: 'admin123',
-          role: 'admin',
-          name: 'Restaurant Owner',
-          redirect: '/admin'
-        },
-        chef: {
-          email: 'chef@spicegarden.com',
-          password: 'chef123',
-          role: 'chef',
-          name: 'Kitchen Staff',
-          redirect: '/chef'
-        },
-        manager: {
-          email: 'manager@spicegarden.com',
-          password: 'manager123',
-          role: 'manager',
-          name: 'Restaurant Manager',
-          redirect: '/admin'
-        }
-      };
-
-      const user = mockUsers[formData.role];
-      
-      if (formData.email === user.email && formData.password === user.password) {
-        setSuccess(`Welcome back, ${user.name}!`);
+      if (result.success) {
+        setSuccess(`Welcome back, ${result.user.name}!`);
         
-        // Store user data in localStorage (in real app, store JWT token)
-        localStorage.setItem('user', JSON.stringify({
-          email: user.email,
-          role: user.role,
-          name: user.name
-        }));
+        // Redirect based on role
+        const redirectMap = {
+          'admin': '/admin',
+          'manager': '/admin',
+          'chef': '/chef',
+          'super_admin': '/superadmin'
+        };
         
-        // Redirect after a short delay
+        const redirectPath = redirectMap[result.user.role] || '/admin';
+        
         setTimeout(() => {
-          navigate(user.redirect);
+          navigate(redirectPath);
         }, 1000);
       } else {
-        setError('Invalid email or password');
+        setError(result.error || 'Login failed. Please try again.');
       }
-    } catch (err) {
-      setError('Login failed. Please try again.');
+    } catch (error) {
+      setError('An error occurred during login. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const roleOptions = [
+    {
+      value: 'super_admin',
+      label: 'Super Admin',
+      icon: Crown,
+      description: 'Platform administrator with full system access'
+    },
     {
       value: 'admin',
       label: 'Restaurant Owner',
@@ -309,8 +293,11 @@ const Login = () => {
         <div className="text-center">
           <p className="text-sm text-gray-500">
             Don't have an account?{' '}
-            <button className="text-blue-600 hover:text-blue-500 font-medium">
-              Contact your administrator
+            <button 
+              onClick={() => navigate('/superadmin-signup')}
+              className="text-blue-600 hover:text-blue-500 font-medium"
+            >
+              Create SuperAdmin Account
             </button>
           </p>
         </div>

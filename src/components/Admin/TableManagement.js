@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
@@ -14,75 +14,43 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import { tableAPI, apiUtils } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import QRCodeGenerator from './QRCodeGenerator';
 
 const TableManagement = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [selectedTable, setSelectedTable] = useState(null);
   const [editingTable, setEditingTable] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [tables, setTables] = useState([]);
 
-  // Mock data for tables
-  const [tables, setTables] = useState([
-    {
-      id: 1,
-      name: 'Table 1',
-      number: 'T001',
-      capacity: 4,
-      area: 'Main Hall',
-      status: 'active',
-      qrCode: 'https://restaurant.com/order?table=1&restaurantId=abc123',
-      lastOrder: '2024-01-15 14:30',
-      totalOrders: 45
-    },
-    {
-      id: 2,
-      name: 'VIP Table 1',
-      number: 'VIP001',
-      capacity: 6,
-      area: 'VIP Section',
-      status: 'active',
-      qrCode: 'https://restaurant.com/order?table=2&restaurantId=abc123',
-      lastOrder: '2024-01-15 16:45',
-      totalOrders: 23
-    },
-    {
-      id: 3,
-      name: 'Table 2',
-      number: 'T002',
-      capacity: 2,
-      area: 'Main Hall',
-      status: 'active',
-      qrCode: 'https://restaurant.com/order?table=3&restaurantId=abc123',
-      lastOrder: '2024-01-15 13:15',
-      totalOrders: 67
-    },
-    {
-      id: 4,
-      name: 'Outdoor Table 1',
-      number: 'OUT001',
-      capacity: 8,
-      area: 'Outdoor',
-      status: 'inactive',
-      qrCode: 'https://restaurant.com/order?table=4&restaurantId=abc123',
-      lastOrder: '2024-01-14 20:30',
-      totalOrders: 12
-    },
-    {
-      id: 5,
-      name: 'Table 3',
-      number: 'T003',
-      capacity: 4,
-      area: 'Main Hall',
-      status: 'active',
-      qrCode: 'https://restaurant.com/order?table=5&restaurantId=abc123',
-      lastOrder: '2024-01-15 15:20',
-      totalOrders: 34
+  // Fetch tables from API
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const response = await tableAPI.getAll(user?.restaurantId);
+        console.log('Tables response:', response.data);
+        setTables(response.data?.tables || []);
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.restaurantId) {
+      fetchTables();
     }
-  ]);
+  }, [user?.restaurantId]);
 
   const [newTable, setNewTable] = useState({
     name: '',
@@ -114,23 +82,23 @@ const TableManagement = () => {
     }
   };
 
-  const filteredTables = tables.filter(table => {
+  const filteredTables = Array.isArray(tables) ? tables.filter(table => {
     const matchesSearch = table.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          table.number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || table.status === statusFilter;
     return matchesSearch && matchesStatus;
-  });
+  }) : [];
 
   const stats = [
     {
       title: 'Total Tables',
-      value: tables.length,
+      value: Array.isArray(tables) ? tables.length : 0,
       color: 'bg-blue-500',
       icon: MapPin
     },
     {
       title: 'Active Tables',
-      value: tables.filter(t => t.status === 'active').length,
+      value: Array.isArray(tables) ? tables.filter(t => t.status === 'active').length : 0,
       color: 'bg-green-500',
       icon: CheckCircle
     },
@@ -142,35 +110,41 @@ const TableManagement = () => {
     },
     {
       title: 'Inactive Tables',
-      value: tables.filter(t => t.status === 'inactive').length,
+      value: Array.isArray(tables) ? tables.filter(t => t.status === 'inactive').length : 0,
       color: 'bg-red-500',
       icon: XCircle
     }
   ];
 
-  const handleAddTable = () => {
+  const handleAddTable = async () => {
     if (!newTable.name || !newTable.number) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const table = {
-      id: Date.now(),
-      ...newTable,
-      qrCode: `https://restaurant.com/order?table=${newTable.number}&restaurantId=abc123`,
-      lastOrder: null,
-      totalOrders: 0
-    };
+    try {
+      setLoading(true);
+      const tableData = {
+        ...newTable,
+        restaurantId: user.restaurantId
+      };
 
-    setTables([...tables, table]);
-    setNewTable({
-      name: '',
-      number: '',
-      capacity: 4,
-      area: 'Main Hall',
-      status: 'active'
-    });
-    setShowAddModal(false);
+      const response = await tableAPI.create(tableData);
+      setTables(prev => [...prev, response.data]);
+      
+      setNewTable({
+        name: '',
+        number: '',
+        capacity: 4,
+        area: 'Main Hall',
+        status: 'active'
+      });
+      setShowAddModal(false);
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditTable = (table) => {
@@ -178,79 +152,108 @@ const TableManagement = () => {
     setShowAddModal(true);
   };
 
-  const handleUpdateTable = () => {
+  const handleUpdateTable = async () => {
     if (!editingTable.name || !editingTable.number) {
       alert('Please fill in all required fields');
       return;
     }
 
-    setTables(tables.map(t => 
-      t.id === editingTable.id ? editingTable : t
-    ));
-    setEditingTable(null);
-    setShowAddModal(false);
-  };
-
-  const handleDeleteTable = (tableId) => {
-    if (window.confirm('Are you sure you want to delete this table?')) {
-      setTables(tables.filter(t => t.id !== tableId));
+    try {
+      setLoading(true);
+      const response = await tableAPI.update(editingTable.id, editingTable);
+      
+      setTables(prev => prev.map(t => 
+        t.id === editingTable.id ? response.data : t
+      ));
+      setEditingTable(null);
+      setShowAddModal(false);
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDownloadQR = (table) => {
-    setIsLoading(true);
-    
-    // Use the CDN version of qrcode.js for download
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-    script.onload = () => {
-      // Create canvas element
-      const canvas = document.createElement('canvas');
+  const handleDeleteTable = async (tableId) => {
+    if (window.confirm('Are you sure you want to delete this table?')) {
+      try {
+        setLoading(true);
+        await tableAPI.delete(tableId);
+        setTables(prev => prev.filter(t => t.id !== tableId));
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleDownloadQR = async (table) => {
+    try {
+      setLoading(true);
       
-      // Generate QR code using the CDN library
-      window.QRCode.toCanvas(canvas, table.qrCode, {
-        width: 400,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        }
-      }, function (error) {
-        if (error) {
-          console.error('QR Code generation error:', error);
-          alert('Failed to generate QR code');
-          setIsLoading(false);
-          return;
-        }
+      // Generate QR code URL if not exists
+      let qrCodeUrl = table.qrCodeUrl;
+      if (!qrCodeUrl) {
+        const response = await tableAPI.generateQR(table.id);
+        qrCodeUrl = response.data.qrCodeUrl;
+      }
+      
+      // Use the CDN version of qrcode.js for download
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+      script.onload = () => {
+        // Create canvas element
+        const canvas = document.createElement('canvas');
         
-        // Download the canvas as PNG
-        const link = document.createElement('a');
-        link.download = `QR_${table.name.replace(/\s+/g, '_')}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-        
-        setIsLoading(false);
-      });
-    };
-    
-    script.onerror = () => {
-      alert('Failed to load QR code library');
-      setIsLoading(false);
-    };
-    
-    document.head.appendChild(script);
+        // Generate QR code using the CDN library
+        window.QRCode.toCanvas(canvas, qrCodeUrl, {
+          width: 400,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        }, function (error) {
+          if (error) {
+            console.error('QR Code generation error:', error);
+            alert('Failed to generate QR code');
+            setLoading(false);
+            return;
+          }
+          
+          // Download the canvas as PNG
+          const link = document.createElement('a');
+          link.download = `QR_${table.name.replace(/\s+/g, '_')}.png`;
+          link.href = canvas.toDataURL();
+          link.click();
+          
+          setLoading(false);
+        });
+      };
+      
+      script.onerror = () => {
+        alert('Failed to load QR code library');
+        setLoading(false);
+      };
+      
+      document.head.appendChild(script);
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+      setLoading(false);
+    }
   };
 
   const handleBulkDownload = () => {
-    setIsLoading(true);
+    setLoading(true);
     
     // For now, we'll download each QR code individually
     // In a real implementation, you'd use a library like JSZip
-    const activeTables = tables.filter(t => t.status === 'active');
+    const activeTables = Array.isArray(tables) ? tables.filter(t => t.status === 'active') : [];
     
     if (activeTables.length === 0) {
       alert('No active tables to download QR codes for.');
-      setIsLoading(false);
+      setLoading(false);
       return;
     }
     
@@ -262,7 +265,7 @@ const TableManagement = () => {
     });
     
     setTimeout(() => {
-      setIsLoading(false);
+      setLoading(false);
       alert(`Downloaded QR codes for ${activeTables.length} active tables!`);
     }, activeTables.length * 500 + 1000);
   };
@@ -330,6 +333,34 @@ const TableManagement = () => {
     printWindow.document.close();
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading tables...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-2">Error loading tables</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -341,7 +372,7 @@ const TableManagement = () => {
         <div className="flex space-x-3">
           <button
             onClick={handleBulkDownload}
-            disabled={isLoading}
+            disabled={loading}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2 disabled:opacity-50"
           >
             <FileDown className="w-5 h-5" />
@@ -413,7 +444,23 @@ const TableManagement = () => {
 
       {/* Tables Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTables.map((table) => (
+        {tables.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <div className="text-gray-500">
+              <MapPin className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No tables found</h3>
+              <p className="text-gray-600 mb-4">Get started by adding your first table</p>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4 inline mr-2" />
+                Add First Table
+              </button>
+            </div>
+          </div>
+        ) : (
+          tables.map((table) => (
           <div 
             key={table.id} 
             className="bg-white rounded-lg shadow-lg border-2 hover:shadow-xl transition-shadow"
@@ -480,13 +527,13 @@ const TableManagement = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Last Order:</span>
                   <span className="text-sm text-gray-900">
-                    {table.lastOrder ? new Date(table.lastOrder).toLocaleDateString() : 'Never'}
+                    {table.lastOrderAt ? new Date(table.lastOrderAt).toLocaleDateString() : 'Never'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">QR URL:</span>
                   <span className="text-xs text-gray-500 truncate max-w-32">
-                    {table.qrCode.split('?')[0]}...
+                    {table.qrCodeUrl ? table.qrCodeUrl.split('?')[0] + '...' : 'Not generated'}
                   </span>
                 </div>
               </div>
@@ -495,7 +542,7 @@ const TableManagement = () => {
               <div className="mt-4 flex space-x-2">
                 <button 
                   onClick={() => handleDownloadQR(table)}
-                  disabled={isLoading}
+                  disabled={loading}
                   className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50"
                 >
                   <Download className="w-4 h-4 inline mr-1" />
@@ -511,7 +558,8 @@ const TableManagement = () => {
               </div>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       {/* Add/Edit Table Modal */}
@@ -664,7 +712,7 @@ const TableManagement = () => {
               
               <div className="bg-gray-100 p-6 rounded-lg mb-4">
                 <QRCodeGenerator 
-                  value={selectedTable.qrCode}
+                  value={selectedTable.qrCodeUrl || `https://restaurant.com/order?table=${selectedTable.number}&restaurantId=${user?.restaurantId}`}
                   size={200}
                   tableName={selectedTable.name}
                 />
@@ -675,7 +723,7 @@ const TableManagement = () => {
                   <strong>Table:</strong> {selectedTable.name} ({selectedTable.number})
                 </p>
                 <p className="text-sm text-gray-600 mb-2">
-                  <strong>QR URL:</strong> {selectedTable.qrCode}
+                  <strong>QR URL:</strong> {selectedTable.qrCodeUrl || `https://restaurant.com/order?table=${selectedTable.number}&restaurantId=${user?.restaurantId}`}
                 </p>
                 <p className="text-sm text-gray-600">
                   <strong>Capacity:</strong> {selectedTable.capacity} seats

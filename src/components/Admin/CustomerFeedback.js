@@ -1,70 +1,105 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Star, 
   MessageSquare, 
   ThumbsUp, 
   Search,
   Eye,
-  Reply
+  Reply,
+  Send,
+  X
 } from 'lucide-react';
+import { feedbackAPI, apiUtils } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CustomerFeedback = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [ratingFilter, setRatingFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [responseText, setResponseText] = useState('');
 
-  // Mock data
-  const feedbacks = [
-    {
-      id: 1,
-      customerName: 'John Smith',
-      orderId: 'ORD-001',
-      rating: 5,
-      comment: 'Excellent food quality and taste! The butter chicken was amazing. Will definitely come back.',
-      date: '2024-01-15',
-      status: 'responded',
-      response: 'Thank you for your wonderful feedback! We\'re glad you enjoyed your meal.'
-    },
-    {
-      id: 2,
-      customerName: 'Sarah Johnson',
-      orderId: 'ORD-002',
-      rating: 4,
-      comment: 'Good biryani, could be spicier. Service was prompt.',
-      date: '2024-01-14',
-      status: 'pending',
-      response: null
-    },
-    {
-      id: 3,
-      customerName: 'Mike Wilson',
-      orderId: 'ORD-003',
-      rating: 5,
-      comment: 'Perfect! Will definitely come back. The staff was very friendly.',
-      date: '2024-01-13',
-      status: 'responded',
-      response: 'Thank you for your kind words! We look forward to serving you again.'
-    },
-    {
-      id: 4,
-      customerName: 'Lisa Brown',
-      orderId: 'ORD-004',
-      rating: 3,
-      comment: 'Food was okay, but the wait time was too long. Need to improve service speed.',
-      date: '2024-01-12',
-      status: 'pending',
-      response: null
-    },
-    {
-      id: 5,
-      customerName: 'David Lee',
-      orderId: 'ORD-005',
-      rating: 5,
-      comment: 'Amazing pasta! Best I\'ve had. The chef really knows how to cook Italian food.',
-      date: '2024-01-11',
-      status: 'responded',
-      response: 'We\'re thrilled you enjoyed our Italian dishes! Thank you for the feedback.'
+  // Fetch feedback from API
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const response = await feedbackAPI.getAll({
+          restaurantId: user?.restaurantId
+        });
+        setFeedbacks(response.data);
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.restaurantId) {
+      fetchFeedback();
     }
-  ];
+  }, [user?.restaurantId]);
+
+  const handleSendResponse = async (feedbackId) => {
+    try {
+      setLoading(true);
+      await feedbackAPI.update(feedbackId, {
+        response: responseText,
+        status: 'responded'
+      });
+      
+      setFeedbacks(prev => prev.map(feedback => 
+        feedback.id === feedbackId 
+          ? { ...feedback, response: responseText, status: 'responded' }
+          : feedback
+      ));
+      
+      setShowResponseModal(false);
+      setSelectedFeedback(null);
+      setResponseText('');
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (feedbackId, status) => {
+    try {
+      setLoading(true);
+      await feedbackAPI.updateStatus(feedbackId, status);
+      
+      setFeedbacks(prev => prev.map(feedback => 
+        feedback.id === feedbackId ? { ...feedback, status } : feedback
+      ));
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredFeedbacks = feedbacks.filter(feedback => {
+    const matchesSearch = feedback.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         feedback.comment?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRating = ratingFilter === 'all' || feedback.rating === parseInt(ratingFilter);
+    return matchesSearch && matchesRating;
+  });
+
+  const renderStars = (rating) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+      />
+    ));
+  };
 
   const stats = [
     {
@@ -75,7 +110,9 @@ const CustomerFeedback = () => {
     },
     {
       title: 'Avg Rating',
-      value: (feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length).toFixed(1),
+      value: feedbacks.length > 0 
+        ? (feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length).toFixed(1)
+        : '0.0',
       color: 'bg-yellow-500',
       icon: Star
     },
@@ -93,21 +130,33 @@ const CustomerFeedback = () => {
     }
   ];
 
-  const filteredFeedbacks = feedbacks.filter(feedback => {
-    const matchesSearch = feedback.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         feedback.comment.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRating = ratingFilter === 'all' || feedback.rating === parseInt(ratingFilter);
-    return matchesSearch && matchesRating;
-  });
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading feedback...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-      />
-    ));
-  };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-2">Error loading feedback</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -170,14 +219,23 @@ const CustomerFeedback = () => {
 
       {/* Feedback List */}
       <div className="space-y-4">
-        {filteredFeedbacks.map((feedback) => (
+        {feedbacks.length === 0 ? (
+          <div className="text-center py-12">
+            <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No feedback yet</h3>
+            <p className="text-gray-600">Customer feedback will appear here once customers start leaving reviews.</p>
+          </div>
+        ) : (
+          filteredFeedbacks.map((feedback) => (
           <div key={feedback.id} className="bg-white rounded-lg shadow p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-4 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{feedback.customerName}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{feedback.customerName || 'Anonymous'}</h3>
                   <span className="text-sm text-gray-500">Order #{feedback.orderId}</span>
-                  <span className="text-sm text-gray-500">{feedback.date}</span>
+                  <span className="text-sm text-gray-500">
+                    {feedback.createdAt ? new Date(feedback.createdAt).toLocaleDateString() : 'N/A'}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2 mb-3">
                   {renderStars(feedback.rating)}
@@ -201,18 +259,27 @@ const CustomerFeedback = () => {
                 }`}>
                   {feedback.status}
                 </span>
-                <button className="text-blue-600 hover:text-blue-900">
+                <button 
+                  onClick={() => setSelectedFeedback(feedback)}
+                  className="text-blue-600 hover:text-blue-900"
+                >
                   <Eye className="w-4 h-4" />
                 </button>
                 {feedback.status === 'pending' && (
-                  <button className="text-green-600 hover:text-green-900">
+                  <button 
+                    onClick={() => {
+                      setSelectedFeedback(feedback);
+                      setShowResponseModal(true);
+                    }}
+                    className="text-green-600 hover:text-green-900"
+                  >
                     <Reply className="w-4 h-4" />
                   </button>
                 )}
               </div>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       {/* Response Rate Chart */}
@@ -221,13 +288,17 @@ const CustomerFeedback = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {Math.round((feedbacks.filter(f => f.status === 'responded').length / feedbacks.length) * 100)}%
+              {feedbacks.length > 0 
+                ? Math.round((feedbacks.filter(f => f.status === 'responded').length / feedbacks.length) * 100)
+                : 0}%
             </div>
             <div className="text-sm text-gray-600">Response Rate</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {Math.round(feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length * 20)}%
+              {feedbacks.length > 0 
+                ? Math.round(feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length * 20)
+                : 0}%
             </div>
             <div className="text-sm text-gray-600">Satisfaction Rate</div>
           </div>
@@ -239,6 +310,59 @@ const CustomerFeedback = () => {
           </div>
         </div>
       </div>
+
+      {/* Response Modal */}
+      {showResponseModal && selectedFeedback && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Respond to Feedback</h3>
+              <button
+                onClick={() => setShowResponseModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>Customer:</strong> {selectedFeedback.customerName || 'Anonymous'}
+              </p>
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>Rating:</strong> {selectedFeedback.rating}/5
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                <strong>Comment:</strong> {selectedFeedback.comment}
+              </p>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Your Response</label>
+              <textarea
+                value={responseText}
+                onChange={(e) => setResponseText(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Write your response to the customer..."
+              />
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => handleSendResponse(selectedFeedback.id)}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2"
+              >
+                <Send className="w-4 h-4" />
+                <span>Send Response</span>
+              </button>
+              <button
+                onClick={() => setShowResponseModal(false)}
+                className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

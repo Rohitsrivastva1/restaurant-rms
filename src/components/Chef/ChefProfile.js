@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Mail, 
@@ -10,25 +10,130 @@ import {
   Clock,
   Edit,
   Save,
-  Award
+  Award,
+  X
 } from 'lucide-react';
+import { userAPI, orderAPI, apiUtils } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ChefProfile = () => {
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [profile, setProfile] = useState({
-    name: 'Rajesh Kumar',
-    email: 'rajesh.k@spicegarden.com',
-    phone: '+91 98765 43210',
-    address: '123 Main Street, Mumbai, Maharashtra',
-    joinDate: '2023-01-15',
-    role: 'Head Chef',
-    specialization: 'Indian Cuisine',
-    experience: '8 years',
-    rating: 4.5,
-    totalOrders: 1250,
-    avgPrepTime: 28,
-    performance: 92
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    joinDate: '',
+    role: '',
+    specialization: '',
+    experience: '',
+    rating: 0,
+    totalOrders: 0,
+    avgPrepTime: 0,
+    performance: 0
   });
+  const [editForm, setEditForm] = useState({});
+
+  // Fetch chef profile and stats from API
+  useEffect(() => {
+    const fetchChefProfile = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const [profileResponse, ordersResponse] = await Promise.all([
+          userAPI.getProfile(),
+          orderAPI.getAll({
+            restaurantId: user?.restaurantId,
+            chefId: user?.id,
+            status: 'completed'
+          })
+        ]);
+
+        const chefProfile = profileResponse.data;
+        const completedOrders = ordersResponse.data;
+
+        // Calculate chef stats
+        const totalOrders = completedOrders.length;
+        const avgRating = totalOrders > 0 
+          ? completedOrders.reduce((sum, order) => sum + (order.rating || 0), 0) / totalOrders
+          : 0;
+        const avgPrepTime = totalOrders > 0 
+          ? Math.round(completedOrders.reduce((sum, order) => {
+              const prepTime = order.completedAt && order.createdAt 
+                ? Math.round((new Date(order.completedAt) - new Date(order.createdAt)) / 60000)
+                : 0;
+              return sum + prepTime;
+            }, 0) / totalOrders)
+          : 0;
+        const performance = Math.min(100, Math.max(0, avgRating * 20 + (100 - avgPrepTime)));
+
+        setProfile({
+          name: chefProfile.name || '',
+          email: chefProfile.email || '',
+          phone: chefProfile.phone || '',
+          address: chefProfile.address || '',
+          joinDate: chefProfile.createdAt ? new Date(chefProfile.createdAt).toLocaleDateString() : '',
+          role: chefProfile.role || 'Chef',
+          specialization: chefProfile.specialization || 'General Cuisine',
+          experience: chefProfile.experience || '0 years',
+          rating: avgRating.toFixed(1),
+          totalOrders,
+          avgPrepTime,
+          performance: Math.round(performance)
+        });
+
+        setEditForm({
+          name: chefProfile.name || '',
+          email: chefProfile.email || '',
+          phone: chefProfile.phone || '',
+          address: chefProfile.address || '',
+          specialization: chefProfile.specialization || 'General Cuisine',
+          experience: chefProfile.experience || '0 years'
+        });
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      fetchChefProfile();
+    }
+  }, [user?.id, user?.restaurantId]);
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await userAPI.updateProfile(editForm);
+      
+      setProfile(prev => ({
+        ...prev,
+        ...editForm
+      }));
+      setIsEditing(false);
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditForm({
+      name: profile.name,
+      email: profile.email,
+      phone: profile.phone,
+      address: profile.address,
+      specialization: profile.specialization,
+      experience: profile.experience
+    });
+    setIsEditing(false);
+  };
 
   const stats = [
     {
@@ -65,8 +170,8 @@ const ChefProfile = () => {
       type: 'award'
     },
     {
-      title: '1000 Orders Milestone',
-      description: 'Successfully completed 1000 orders',
+      title: `${profile.totalOrders} Orders Milestone`,
+      description: `Successfully completed ${profile.totalOrders} orders`,
       date: '2024-01-10',
       type: 'milestone'
     },
@@ -78,10 +183,33 @@ const ChefProfile = () => {
     }
   ];
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // In real app, save to backend
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading chef profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-2">Error loading chef profile</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -90,13 +218,34 @@ const ChefProfile = () => {
           <h1 className="text-2xl font-bold text-gray-900">Chef Profile</h1>
           <p className="text-gray-600">Manage your profile and view performance metrics</p>
         </div>
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-        >
-          {isEditing ? <Save className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
-          <span>{isEditing ? 'Save' : 'Edit'}</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleCancel}
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center space-x-2"
+              >
+                <X className="w-5 h-5" />
+                <span>Cancel</span>
+              </button>
+              <button
+                onClick={handleSave}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
+              >
+                <Save className="w-5 h-5" />
+                <span>Save</span>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+            >
+              <Edit className="w-5 h-5" />
+              <span>Edit</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Profile Header */}
@@ -153,8 +302,8 @@ const ChefProfile = () => {
                 {isEditing ? (
                   <input
                     type="email"
-                    value={profile.email}
-                    onChange={(e) => setProfile({...profile, email: e.target.value})}
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 ) : (
@@ -170,8 +319,8 @@ const ChefProfile = () => {
                 {isEditing ? (
                   <input
                     type="tel"
-                    value={profile.phone}
-                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 ) : (
@@ -186,8 +335,8 @@ const ChefProfile = () => {
                 <label className="text-sm font-medium text-gray-600">Address</label>
                 {isEditing ? (
                   <textarea
-                    value={profile.address}
-                    onChange={(e) => setProfile({...profile, address: e.target.value})}
+                    value={editForm.address}
+                    onChange={(e) => setEditForm({...editForm, address: e.target.value})}
                     rows={2}
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -202,6 +351,40 @@ const ChefProfile = () => {
               <div className="flex-1">
                 <label className="text-sm font-medium text-gray-600">Join Date</label>
                 <p className="text-gray-900">{profile.joinDate}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <Award className="w-5 h-5 text-gray-400 mr-3" />
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-600">Specialization</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editForm.specialization}
+                    onChange={(e) => setEditForm({...editForm, specialization: e.target.value})}
+                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                ) : (
+                  <p className="text-gray-900">{profile.specialization}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <TrendingUp className="w-5 h-5 text-gray-400 mr-3" />
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-600">Experience</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editForm.experience}
+                    onChange={(e) => setEditForm({...editForm, experience: e.target.value})}
+                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                ) : (
+                  <p className="text-gray-900">{profile.experience}</p>
+                )}
               </div>
             </div>
           </div>
@@ -336,19 +519,6 @@ const ChefProfile = () => {
           </div>
         </div>
       </div>
-
-      {/* Save Button for Edit Mode */}
-      {isEditing && (
-        <div className="flex justify-end">
-          <button
-            onClick={handleSave}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
-          >
-            <Save className="w-5 h-5" />
-            <span>Save Changes</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 };

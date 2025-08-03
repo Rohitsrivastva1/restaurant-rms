@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Edit, 
@@ -6,66 +6,108 @@ import {
   Search,
   Filter
 } from 'lucide-react';
+import { menuAPI, apiUtils } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const MenuManagement = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [menuItems, setMenuItems] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  // Mock data
-  const menuItems = [
-    {
-      id: 1,
-      name: 'Butter Chicken',
-      category: 'Main Course',
-      price: 450,
-      description: 'Creamy and rich butter chicken with naan',
-      image: 'https://via.placeholder.com/150',
-      available: true,
-      veg: false,
-      spicyLevel: 2,
-      ingredients: ['Chicken', 'Butter', 'Cream', 'Spices'],
-    },
-    {
-      id: 2,
-      name: 'Paneer Tikka',
-      category: 'Starters',
-      price: 280,
-      description: 'Grilled cottage cheese with spices',
-      image: 'https://via.placeholder.com/150',
-      available: true,
-      veg: true,
-      spicyLevel: 1,
-      ingredients: ['Paneer', 'Spices', 'Oil'],
-    },
-    {
-      id: 3,
-      name: 'Biryani',
-      category: 'Main Course',
-      price: 350,
-      description: 'Fragrant rice with tender meat',
-      image: 'https://via.placeholder.com/150',
-      available: true,
-      veg: false,
-      spicyLevel: 3,
-      ingredients: ['Rice', 'Meat', 'Spices', 'Herbs'],
-    },
-    {
-      id: 4,
-      name: 'Naan',
-      category: 'Breads',
-      price: 30,
-      description: 'Soft and fluffy Indian bread',
-      image: 'https://via.placeholder.com/150',
-      available: true,
-      veg: true,
-      spicyLevel: 0,
-      ingredients: ['Flour', 'Yeast', 'Water'],
-    },
-  ];
+  useEffect(() => {
+    const fetchMenuData = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-  const categories = ['All', 'Starters', 'Main Course', 'Breads', 'Desserts', 'Beverages'];
+        const [menuResponse, categoriesResponse] = await Promise.all([
+          menuAPI.getAll(user?.restaurantId),
+          menuAPI.getCategories()
+        ]);
+
+        console.log('Menu response:', menuResponse.data);
+        console.log('Categories response:', categoriesResponse.data);
+        setMenuItems(menuResponse.data?.items || []);
+        const categoryOptions = categoriesResponse.data?.categories || [];
+        setCategories(['All', ...categoryOptions.map(cat => cat.label)]);
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.restaurantId) {
+      fetchMenuData();
+    }
+  }, [user]);
+
+  const handleAddItem = async (itemData) => {
+    try {
+      setLoading(true);
+      const response = await menuAPI.create({
+        ...itemData,
+        restaurantId: user.restaurantId
+      });
+      
+      setMenuItems(prev => [...prev, response.data]);
+      setShowAddModal(false);
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateItem = async (id, itemData) => {
+    try {
+      setLoading(true);
+      const response = await menuAPI.update(id, itemData);
+      
+      setMenuItems(prev => prev.map(item => 
+        item.id === id ? response.data : item
+      ));
+      setEditingItem(null);
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteItem = async (id) => {
+    try {
+      setLoading(true);
+      await menuAPI.delete(id);
+      
+      setMenuItems(prev => prev.filter(item => item.id !== id));
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleAvailability = async (id, available) => {
+    try {
+      setLoading(true);
+      await menuAPI.updateAvailability(id, available);
+      
+      setMenuItems(prev => prev.map(item => 
+        item.id === id ? { ...item, available } : item
+      ));
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getSpicyLevel = (level) => {
     return '🌶️'.repeat(level);
@@ -77,11 +119,11 @@ const MenuManagement = () => {
       <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Non-Veg</span>;
   };
 
-  const filteredItems = menuItems.filter(item => {
+  const filteredItems = Array.isArray(menuItems) ? menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   return (
     <div className="space-y-6">

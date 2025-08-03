@@ -1,177 +1,273 @@
-import React from 'react';
-import { 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
+  Users, 
   ShoppingCart, 
   CheckCircle,
-  Clock
+  Clock,
+  TrendingUp,
+  DollarSign,
+  Activity
 } from 'lucide-react';
+import { superAdminAPI, apiUtils } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SuperAdminDashboard = () => {
-  // Mock data
-  const orderData = [
-    { day: 'Mon', orders: 45 },
-    { day: 'Tue', orders: 52 },
-    { day: 'Wed', orders: 38 },
-    { day: 'Thu', orders: 67 },
-    { day: 'Fri', orders: 89 },
-    { day: 'Sat', orders: 120 },
-    { day: 'Sun', orders: 95 },
-  ];
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [dashboardData, setDashboardData] = useState({
+    stats: [],
+    recentActivity: []
+  });
 
-  const restaurantStatus = [
-    { name: 'Active', value: 45, color: '#10B981' },
-    { name: 'Pending', value: 12, color: '#F59E0B' },
-    { name: 'Suspended', value: 3, color: '#EF4444' },
-  ];
+  // Fetch dashboard data from API
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-  const stats = [
+        const [dashboardResponse, platformStatsResponse] = await Promise.all([
+          superAdminAPI.getDashboard(),
+          superAdminAPI.getPlatformStats()
+        ]);
+
+        const dashboard = dashboardResponse.data;
+        const platformStats = platformStatsResponse.data;
+
+        setDashboardData({
+          stats: [
+            {
+              title: 'Total Restaurants',
+              value: platformStats.totalRestaurants?.toString() || '0',
+              change: platformStats.restaurantGrowth || '+0',
+              icon: Building2,
+              color: 'bg-blue-500',
+              description: 'Registered restaurants'
+            },
+            {
+              title: 'Pending Verifications',
+              value: platformStats.pendingRestaurants?.toString() || '0',
+              change: platformStats.restaurantGrowth || '-0',
+              icon: Clock,
+              color: 'bg-yellow-500',
+              description: 'Awaiting approval'
+            },
+            {
+              title: 'Active Restaurants',
+              value: platformStats.activeRestaurants?.toString() || '0',
+              change: platformStats.restaurantGrowth || '+0',
+              icon: CheckCircle,
+              color: 'bg-green-500',
+              description: 'Currently active'
+            },
+            {
+              title: 'Total Orders Today',
+              value: dashboard.todayStats?.totalOrders?.toLocaleString() || '0',
+              change: dashboard.todayStats?.totalOrders > 0 ? '+12%' : '+0%',
+              icon: ShoppingCart,
+              color: 'bg-purple-500',
+              description: 'Across all restaurants'
+            },
+            {
+              title: 'Total Revenue',
+              value: `₹${dashboard.todayStats?.totalRevenue?.toLocaleString() || '0'}`,
+              change: dashboard.todayStats?.totalRevenue > 0 ? '+8%' : '+0%',
+              icon: DollarSign,
+              color: 'bg-green-600',
+              description: 'Today\'s earnings'
+            },
+            {
+              title: 'Active Users',
+              value: platformStats.activeUsers?.toString() || '0',
+              change: platformStats.userGrowth || '+0',
+              icon: Users,
+              color: 'bg-indigo-500',
+              description: 'Staff members online'
+            }
+          ],
+          recentActivity: dashboard.recentActivity || []
+        });
+      } catch (error) {
+        setError(apiUtils.handleError(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.role === 'super_admin') {
+      fetchDashboardData();
+    }
+  }, [user?.role]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-2">Error loading dashboard</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = dashboardData.stats;
+
+  // Mock stats data for development
+  const mockStats = [
     {
       title: 'Total Restaurants',
-      value: '60',
-      change: '+5',
+      value: '12',
+      change: '+2',
       icon: Building2,
       color: 'bg-blue-500',
-    },
-    {
-      title: 'Pending Verifications',
-      value: '12',
-      change: '-3',
-      icon: Clock,
-      color: 'bg-yellow-500',
+      description: 'Registered restaurants'
     },
     {
       title: 'Active Restaurants',
-      value: '45',
-      change: '+2',
+      value: '10',
+      change: '+1',
       icon: CheckCircle,
       color: 'bg-green-500',
+      description: 'Currently active'
+    },
+    {
+      title: 'Pending Verifications',
+      value: '3',
+      change: '-1',
+      icon: Clock,
+      color: 'bg-yellow-500',
+      description: 'Awaiting approval'
     },
     {
       title: 'Total Orders Today',
-      value: '1,234',
+      value: '1,247',
       change: '+12%',
       icon: ShoppingCart,
       color: 'bg-purple-500',
+      description: 'Across all restaurants'
     },
+    {
+      title: 'Total Revenue',
+      value: '₹45,230',
+      change: '+8%',
+      icon: DollarSign,
+      color: 'bg-green-600',
+      description: 'Today\'s earnings'
+    },
+    {
+      title: 'Active Users',
+      value: '156',
+      change: '+5',
+      icon: Users,
+      color: 'bg-indigo-500',
+      description: 'Staff members online'
+    }
   ];
+
+  const recentActivity = dashboardData.recentActivity;
 
   return (
     <div className="space-y-6">
-      <div>
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow p-6">
         <h1 className="text-2xl font-bold text-gray-900">Platform Dashboard</h1>
-        <p className="text-gray-600">Overview of your restaurant platform</p>
+        <p className="text-gray-600 mt-2">Welcome back! Here's what's happening across your restaurant platform.</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div key={index} className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className={`p-3 rounded-lg ${stat.color}`}>
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                <div className="ml-4">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-xs text-gray-500">{stat.description}</p>
+                </div>
+                <div className={`p-3 rounded-full ${stat.color}`}>
+                  <Icon className="h-6 w-6 text-white" />
                 </div>
               </div>
-              <div className="mt-4">
-                <span className="text-sm text-green-600 font-medium">{stat.change}</span>
-                <span className="text-sm text-gray-500 ml-1">from last week</span>
+              <div className="mt-4 flex items-center">
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-sm text-green-600">{stat.change}</span>
+                <span className="text-sm text-gray-500 ml-2">from yesterday</span>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Orders Chart */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Orders This Week</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={orderData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="orders" fill="#3B82F6" />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Recent Activity */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
         </div>
-
-        {/* Restaurant Status */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Restaurant Status</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={restaurantStatus}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {restaurantStatus.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-4 flex justify-center space-x-4">
-            {restaurantStatus.map((status, index) => (
-              <div key={index} className="flex items-center">
-                <div 
-                  className="w-3 h-3 rounded-full mr-2"
-                  style={{ backgroundColor: status.color }}
-                ></div>
-                <span className="text-sm text-gray-600">{status.name}</span>
+        <div className="p-6">
+          <div className="space-y-4">
+            {recentActivity.map((activity) => (
+              <div key={activity.id} className="flex items-center space-x-4">
+                <div className={`p-2 rounded-full ${
+                  activity.status === 'completed' ? 'bg-green-100' : 'bg-yellow-100'
+                }`}>
+                  <Activity className={`h-4 w-4 ${
+                    activity.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
+                  }`} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                  <p className="text-xs text-gray-500">{activity.time}</p>
+                </div>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  activity.status === 'completed' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {activity.status}
+                </span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">New restaurant "Spice Garden" registered</span>
-              <span className="text-xs text-gray-400">2 hours ago</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Restaurant "Pizza Palace" verified</span>
-              <span className="text-xs text-gray-400">4 hours ago</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Payment received from "Burger House"</span>
-              <span className="text-xs text-gray-400">6 hours ago</span>
-            </div>
-          </div>
+      {/* Quick Actions */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <Building2 className="h-5 w-5 text-blue-600 mr-2" />
+            <span className="text-sm font-medium">Add Restaurant</span>
+          </button>
+          <button className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <Users className="h-5 w-5 text-green-600 mr-2" />
+            <span className="text-sm font-medium">Create Admin User</span>
+          </button>
+          <button className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <CheckCircle className="h-5 w-5 text-purple-600 mr-2" />
+            <span className="text-sm font-medium">Review Pending</span>
+          </button>
         </div>
       </div>
     </div>

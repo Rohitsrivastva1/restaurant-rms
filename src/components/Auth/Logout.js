@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, CheckCircle } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Logout = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   useEffect(() => {
-    // Clear user data from localStorage
-    localStorage.removeItem('user');
+    // Call logout function from auth context
+    logout();
     
     // Show logout message briefly before redirecting
     const timer = setTimeout(() => {
@@ -15,7 +17,7 @@ const Logout = () => {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, logout]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
