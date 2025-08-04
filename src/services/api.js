@@ -168,6 +168,17 @@ export const restaurantUsersAPI = {
   deleteStaff: (id) => api.delete(`/restaurant-users/staff/${id}`),
 };
 
+// Staff Management API calls
+export const staffAPI = {
+  getAll: (params) => api.get('/staff', { params }),
+  getById: (id) => api.get(`/staff/${id}`),
+  create: (data) => api.post('/staff', data),
+  update: (id, data) => api.put(`/staff/${id}`, data),
+  delete: (id) => api.delete(`/staff/${id}`),
+  getByRestaurant: (restaurantId) => api.get(`/staff/restaurant/${restaurantId}`),
+  getStats: () => api.get('/staff/stats'),
+};
+
 // Utility functions
 export const apiUtils = {
   handleError: (error) => {

@@ -49,10 +49,11 @@ const OrderManagement = () => {
         };
 
         const response = await orderAPI.getAll(params);
-        setOrders(response.data.orders || []);
+        console.log('Orders response:', response.data);
+        setOrders(response.data?.orders || response.data || []);
         setPagination(prev => ({
           ...prev,
-          total: response.data.total || 0
+          total: response.data?.total || response.data?.length || 0
         }));
       } catch (error) {
         setError(apiUtils.handleError(error));
@@ -106,37 +107,39 @@ const OrderManagement = () => {
 
     // Set up real-time updates every 30 seconds
     const interval = setInterval(() => {
+      const fetchOrders = async () => {
+        try {
+          setLoading(true);
+          setError('');
+
+          const params = {
+            page: pagination.page,
+            limit: pagination.limit,
+            search: searchTerm || undefined,
+            status: statusFilter !== 'all' ? statusFilter : undefined,
+            restaurantId: user?.restaurantId
+          };
+
+          const response = await orderAPI.getAll(params);
+          console.log('Orders response:', response.data);
+          setOrders(response.data?.orders || response.data || []);
+          setPagination(prev => ({
+            ...prev,
+            total: response.data?.total || response.data?.length || 0
+          }));
+        } catch (error) {
+          setError(apiUtils.handleError(error));
+        } finally {
+          setLoading(false);
+        }
+      };
       fetchOrders();
     }, 30000);
 
     return () => clearInterval(interval);
   }, [user?.restaurantId]);
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      setError('');
 
-      const params = {
-        page: pagination.page,
-        limit: pagination.limit,
-        search: searchTerm || undefined,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        restaurantId: user?.restaurantId
-      };
-
-      const response = await orderAPI.getAll(params);
-      setOrders(response.data.orders || []);
-      setPagination(prev => ({
-        ...prev,
-        total: response.data.total || 0
-      }));
-    } catch (error) {
-      setError(apiUtils.handleError(error));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -163,34 +166,35 @@ const OrderManagement = () => {
   const stats = [
     {
       title: 'Total Orders',
-      value: orders.length,
+      value: Array.isArray(orders) ? orders.length : 0,
       color: 'bg-blue-500',
       icon: ShoppingCart
     },
     {
       title: 'Pending',
-      value: orders.filter(o => o.status === 'pending').length,
+      value: Array.isArray(orders) ? orders.filter(o => o.status === 'pending').length : 0,
       color: 'bg-yellow-500',
       icon: Clock
     },
     {
       title: 'In Progress',
-      value: orders.filter(o => o.status === 'in_progress').length,
+      value: Array.isArray(orders) ? orders.filter(o => o.status === 'in_progress').length : 0,
       color: 'bg-blue-500',
       icon: ShoppingCart
     },
     {
       title: 'Completed',
-      value: orders.filter(o => o.status === 'completed').length,
+      value: Array.isArray(orders) ? orders.filter(o => o.status === 'completed').length : 0,
       color: 'bg-green-500',
       icon: CheckCircle
     }
   ];
 
   const calculateTotalRevenue = () => {
+    if (!Array.isArray(orders)) return 0;
     return orders
       .filter(order => order.status === 'completed')
-      .reduce((total, order) => total + order.totalAmount, 0);
+      .reduce((total, order) => total + (order.totalAmount || 0), 0);
   };
 
   if (loading) {
@@ -373,7 +377,7 @@ const OrderManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {orders.length === 0 ? (
+              {!Array.isArray(orders) || orders.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
                     {loading ? 'Loading orders...' : 'No orders found'}

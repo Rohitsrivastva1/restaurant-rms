@@ -42,79 +42,197 @@ import MenuScreen from './components/Customer/MenuScreen';
 function AppContent() {
   const { user, loading } = useAuth();
 
-  const renderDashboardRoutes = () => {
-    if (loading) {
-      return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-    }
-    
-    if (!user) {
-      return <Navigate to="/login" replace />;
-    }
-    
-    switch (user.role) {
-      case 'super_admin':
-        return (
-          <Routes>
-            <Route path="/superadmin" element={<SuperAdminDashboard />} />
-            <Route path="/superadmin/restaurants" element={<RestaurantManagement />} />
-            <Route path="/superadmin/admins" element={<AdminUserManagement />} />
-            <Route path="/superadmin/settings" element={<PlatformSettings />} />
-            <Route path="/superadmin/reports" element={<Reports />} />
-            <Route path="*" element={<Navigate to="/superadmin" replace />} />
-          </Routes>
-        );
-      
-      case 'admin':
-      case 'manager':
-        return (
-          <Routes>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/menu" element={<MenuManagement />} />
-            <Route path="/admin/tables" element={<TableManagement />} />
-            <Route path="/admin/orders" element={<OrderManagement />} />
-            <Route path="/admin/staff" element={<StaffManagement />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/feedback" element={<CustomerFeedback />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="*" element={<Navigate to="/admin" replace />} />
-          </Routes>
-        );
-      
-      case 'chef':
-        return (
-          <Routes>
-            <Route path="/chef" element={<LiveOrders />} />
-            <Route path="/chef/history" element={<OrderHistory />} />
-            <Route path="/chef/profile" element={<ChefProfile />} />
-            <Route path="*" element={<Navigate to="/chef" replace />} />
-          </Routes>
-        );
-      
-      default:
-        return <Navigate to="/login" replace />;
-    }
-  };
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
 
   return (
     <Router>
       <div className="App">
         <Routes>
-          {/* Public routes */}
+          {/* Public routes - accessible without authentication */}
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/superadmin-signup" element={<SuperAdminSignup />} />
           <Route path="/customer" element={<MenuScreen />} />
           <Route path="/order" element={<MenuScreen />} />
+          <Route path="/menu" element={<MenuScreen />} />
           
-          {/* Protected dashboard routes */}
+          {/* SuperAdmin Routes */}
           <Route 
-            path="/*" 
+            path="/superadmin" 
             element={
               <ProtectedRoute>
                 <DashboardLayout role={user?.role} user={user}>
-                  {renderDashboardRoutes()}
+                  <SuperAdminDashboard />
                 </DashboardLayout>
               </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/superadmin/restaurants" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <RestaurantManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/superadmin/admins" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <AdminUserManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/superadmin/settings" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <PlatformSettings />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/superadmin/reports" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <Reports />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Admin/Manager Routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <AdminDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/menu" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <MenuManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/tables" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <TableManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/orders" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <OrderManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/staff" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <StaffManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/reports" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <AdminReports />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/feedback" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <CustomerFeedback />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/settings" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <AdminSettings />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Chef Routes */}
+          <Route 
+            path="/chef" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <LiveOrders />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/chef/history" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <OrderHistory />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/chef/profile" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <ChefProfile />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Default redirect for authenticated users */}
+          <Route 
+            path="/*" 
+            element={
+              user ? (
+                <Navigate to={`/${user.role === 'super_admin' ? 'superadmin' : user.role === 'admin' || user.role === 'manager' ? 'admin' : 'chef'}`} replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
             } 
           />
         </Routes>

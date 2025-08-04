@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { menuAPI, apiUtils } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import ImageWithFallback from './ImageWithFallback';
 
 const MenuManagement = () => {
   const { user } = useAuth();
@@ -19,6 +20,15 @@ const MenuManagement = () => {
   const [error, setError] = useState('');
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    category: '',
+    price: '',
+    description: '',
+    veg: false,
+    available: true,
+    spicyLevel: 1
+  });
 
   useEffect(() => {
     const fetchMenuData = async () => {
@@ -35,7 +45,8 @@ const MenuManagement = () => {
         console.log('Categories response:', categoriesResponse.data);
         setMenuItems(menuResponse.data?.items || []);
         const categoryOptions = categoriesResponse.data?.categories || [];
-        setCategories(['All', ...categoryOptions.map(cat => cat.label)]);
+        // Store both value and label for categories
+        setCategories(['All', ...categoryOptions.map(cat => ({ value: cat.value, label: cat.label }))]);
       } catch (error) {
         setError(apiUtils.handleError(error));
       } finally {
@@ -109,6 +120,88 @@ const MenuManagement = () => {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.category || !formData.price) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const itemData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        spicyLevel: parseInt(formData.spicyLevel),
+        restaurantId: user.restaurantId
+      };
+
+      console.log('Submitting menu item data:', itemData);
+
+      if (editingItem) {
+        await handleUpdateItem(editingItem.id, itemData);
+      } else {
+        await handleAddItem(itemData);
+      }
+
+      // Reset form
+      setFormData({
+        name: '',
+        category: '',
+        price: '',
+        description: '',
+        veg: false,
+        available: true,
+        spicyLevel: 1
+      });
+      setShowAddModal(false);
+      setEditingItem(null);
+    } catch (error) {
+      setError(apiUtils.handleError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openAddModal = () => {
+    setFormData({
+      name: '',
+      category: '',
+      price: '',
+      description: '',
+      veg: false,
+      available: true,
+      spicyLevel: 1
+    });
+    setEditingItem(null);
+    setShowAddModal(true);
+  };
+
+  const openEditModal = (item) => {
+    setFormData({
+      name: item.name,
+      category: item.category,
+      price: item.price.toString(),
+      description: item.description,
+      veg: item.veg,
+      available: item.available,
+      spicyLevel: item.spicyLevel
+    });
+    setEditingItem(item);
+    setShowAddModal(true);
+  };
+
   const getSpicyLevel = (level) => {
     return '🌶️'.repeat(level);
   };
@@ -133,7 +226,7 @@ const MenuManagement = () => {
           <p className="text-gray-600">Manage your restaurant menu items</p>
         </div>
         <button 
-          onClick={() => setShowAddModal(true)}
+          onClick={openAddModal}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
         >
           <Plus className="w-4 h-4" />
@@ -164,8 +257,8 @@ const MenuManagement = () => {
               className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {categories.map(category => (
-                <option key={category} value={category === 'All' ? 'all' : category}>
-                  {category}
+                <option key={category.value} value={category.value}>
+                  {category.label}
                 </option>
               ))}
             </select>
@@ -178,11 +271,11 @@ const MenuManagement = () => {
         {filteredItems.map((item) => (
           <div key={item.id} className="bg-white rounded-lg shadow overflow-hidden">
             <div className="relative">
-              <img 
-                src={item.image} 
-                alt={item.name}
-                className="w-full h-48 object-cover"
-              />
+                             <ImageWithFallback 
+                 src={item.image} 
+                 alt={item.name}
+                 className="w-full h-48 object-cover"
+               />
               <div className="absolute top-2 right-2 flex space-x-1">
                 {getVegBadge(item.veg)}
                 <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
@@ -215,7 +308,7 @@ const MenuManagement = () => {
                 
                 <div className="flex space-x-2">
                   <button 
-                    onClick={() => setEditingItem(item)}
+                    onClick={() => openEditModal(item)}
                     className="text-blue-600 hover:text-blue-900"
                   >
                     <Edit className="w-4 h-4" />
@@ -238,37 +331,60 @@ const MenuManagement = () => {
               {editingItem ? 'Edit Menu Item' : 'Add Menu Item'}
             </h3>
             
-            <form className="space-y-4">
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+            
+            <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Item Name
+                  Item Name *
                 </label>
                 <input
                   type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter item name"
+                  required
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                  Category *
                 </label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select 
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select a category</option>
                   {categories.slice(1).map(category => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category.value} value={category.value}>{category.label}</option>
                   ))}
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price
+                  Price *
                 </label>
                 <input
                   type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter price"
+                  min="0"
+                  step="0.01"
+                  required
                 />
               </div>
               
@@ -277,19 +393,53 @@ const MenuManagement = () => {
                   Description
                 </label>
                 <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows="3"
                   placeholder="Enter description"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Spicy Level
+                </label>
+                <select
+                  name="spicyLevel"
+                  value={formData.spicyLevel}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={0}>No Spice</option>
+                  <option value={1}>Mild</option>
+                  <option value={2}>Medium</option>
+                  <option value={3}>Hot</option>
+                  <option value={4}>Very Hot</option>
+                  <option value={5}>Extreme</option>
+                </select>
+              </div>
               
               <div className="flex items-center space-x-4">
                 <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
+                  <input 
+                    type="checkbox" 
+                    name="veg"
+                    checked={formData.veg}
+                    onChange={handleInputChange}
+                    className="mr-2" 
+                  />
                   <span className="text-sm text-gray-700">Vegetarian</span>
                 </label>
                 <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
+                  <input 
+                    type="checkbox" 
+                    name="available"
+                    checked={formData.available}
+                    onChange={handleInputChange}
+                    className="mr-2" 
+                  />
                   <span className="text-sm text-gray-700">Available</span>
                 </label>
               </div>
@@ -307,9 +457,10 @@ const MenuManagement = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
                 >
-                  {editingItem ? 'Update' : 'Add'} Item
+                  {loading ? 'Saving...' : (editingItem ? 'Update' : 'Add') + ' Item'}
                 </button>
               </div>
             </form>

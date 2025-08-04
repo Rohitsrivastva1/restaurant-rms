@@ -17,6 +17,7 @@ import {
 import { tableAPI, apiUtils } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import QRCodeGenerator from './QRCodeGenerator';
+import QRCode from 'qrcode';
 
 const TableManagement = () => {
   const { user } = useAuth();
@@ -54,10 +55,10 @@ const TableManagement = () => {
 
   const [newTable, setNewTable] = useState({
     name: '',
-    number: '',
+    tableNumber: '',
     capacity: 4,
     area: 'Main Hall',
-    status: 'active'
+    status: 'available'
   });
 
   const areas = ['Main Hall', 'VIP Section', 'Outdoor', 'AC Room', 'Bar Area'];
@@ -65,9 +66,10 @@ const TableManagement = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-red-100 text-red-800';
+      case 'available': return 'bg-green-100 text-green-800';
+      case 'occupied': return 'bg-red-100 text-red-800';
       case 'reserved': return 'bg-yellow-100 text-yellow-800';
+      case 'cleaning': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -83,8 +85,8 @@ const TableManagement = () => {
   };
 
   const filteredTables = Array.isArray(tables) ? tables.filter(table => {
-    const matchesSearch = table.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         table.number.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (table.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (table.tableNumber?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || table.status === statusFilter;
     return matchesSearch && matchesStatus;
   }) : [];
@@ -97,27 +99,27 @@ const TableManagement = () => {
       icon: MapPin
     },
     {
-      title: 'Active Tables',
-      value: Array.isArray(tables) ? tables.filter(t => t.status === 'active').length : 0,
+      title: 'Available Tables',
+      value: Array.isArray(tables) ? tables.filter(t => t.status === 'available').length : 0,
       color: 'bg-green-500',
       icon: CheckCircle
     },
     {
       title: 'Total Capacity',
-      value: tables.reduce((sum, t) => sum + t.capacity, 0),
+      value: Array.isArray(tables) ? tables.reduce((sum, t) => sum + (t.capacity || 0), 0) : 0,
       color: 'bg-purple-500',
       icon: Users
     },
     {
-      title: 'Inactive Tables',
-      value: Array.isArray(tables) ? tables.filter(t => t.status === 'inactive').length : 0,
+      title: 'Occupied Tables',
+      value: Array.isArray(tables) ? tables.filter(t => t.status === 'occupied').length : 0,
       color: 'bg-red-500',
       icon: XCircle
     }
   ];
 
   const handleAddTable = async () => {
-    if (!newTable.name || !newTable.number) {
+    if (!newTable.name || !newTable.tableNumber) {
       alert('Please fill in all required fields');
       return;
     }
@@ -125,19 +127,26 @@ const TableManagement = () => {
     try {
       setLoading(true);
       const tableData = {
-        ...newTable,
+        name: newTable.name,
+        tableNumber: newTable.tableNumber, // Map to tableNumber field
+        capacity: parseInt(newTable.capacity),
+        area: newTable.area,
+        status: newTable.status,
         restaurantId: user.restaurantId
       };
 
+      console.log('Creating table with data:', tableData);
       const response = await tableAPI.create(tableData);
+      console.log('Created table:', response.data);
+      
       setTables(prev => [...prev, response.data]);
       
       setNewTable({
         name: '',
-        number: '',
+        tableNumber: '',
         capacity: 4,
         area: 'Main Hall',
-        status: 'active'
+        status: 'available'
       });
       setShowAddModal(false);
     } catch (error) {
@@ -153,14 +162,24 @@ const TableManagement = () => {
   };
 
   const handleUpdateTable = async () => {
-    if (!editingTable.name || !editingTable.number) {
+    if (!editingTable.name || !editingTable.tableNumber) {
       alert('Please fill in all required fields');
       return;
     }
 
     try {
       setLoading(true);
-      const response = await tableAPI.update(editingTable.id, editingTable);
+      const tableData = {
+        name: editingTable.name,
+        tableNumber: editingTable.tableNumber, // Map to tableNumber field
+        capacity: parseInt(editingTable.capacity),
+        area: editingTable.area,
+        status: editingTable.status
+      };
+      
+      console.log('Updating table with data:', tableData);
+      const response = await tableAPI.update(editingTable.id, tableData);
+      console.log('Updated table:', response.data);
       
       setTables(prev => prev.map(t => 
         t.id === editingTable.id ? response.data : t
@@ -188,58 +207,115 @@ const TableManagement = () => {
     }
   };
 
+  // Test QR code generation
+  const testQRGeneration = async () => {
+    try {
+      console.log('Testing QR code generation...');
+      const testURL = 'http://localhost:3001/menu?table=T1&restaurantId=1';
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 200;
+      canvas.height = 200;
+      
+      await QRCode.toCanvas(canvas, testURL, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      // Create a simple download
+      const link = document.createElement('a');
+      link.download = 'test-qr-code.png';
+      link.href = canvas.toDataURL();
+      link.click();
+      
+      console.log('Test QR code generated and downloaded successfully');
+      alert('Test QR code generated successfully! Check downloads.');
+    } catch (error) {
+      console.error('Test QR generation failed:', error);
+      alert('Test QR generation failed: ' + error.message);
+    }
+  };
+
   const handleDownloadQR = async (table) => {
     try {
       setLoading(true);
       
-      // Generate QR code URL if not exists
-      let qrCodeUrl = table.qrCodeUrl;
-      if (!qrCodeUrl) {
-        const response = await tableAPI.generateQR(table.id);
-        qrCodeUrl = response.data.qrCodeUrl;
-      }
+      // Get QR code data from API
+      const response = await tableAPI.generateQR(table.id);
+      const qrData = response.data.qrData;
       
-      // Use the CDN version of qrcode.js for download
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-      script.onload = () => {
-        // Create canvas element
-        const canvas = document.createElement('canvas');
-        
-        // Generate QR code using the CDN library
-        window.QRCode.toCanvas(canvas, qrCodeUrl, {
-          width: 400,
+      console.log('QR Data:', qrData);
+      console.log('QR URL:', qrData.url);
+      
+      // Test QR code generation with a simple URL first
+      const testURL = qrData.url || 'http://localhost:3001/menu?table=T1&restaurantId=1';
+      console.log('Generating QR for URL:', testURL);
+      
+      // Generate QR code using the local library
+      const qrCanvas = document.createElement('canvas');
+      qrCanvas.width = 300;
+      qrCanvas.height = 300;
+      
+      console.log('QRCode library available:', typeof QRCode);
+      console.log('QRCode.toCanvas available:', typeof QRCode.toCanvas);
+      
+      try {
+        await QRCode.toCanvas(qrCanvas, testURL, {
+          width: 300,
           margin: 2,
           color: {
             dark: '#000000',
             light: '#FFFFFF'
           }
-        }, function (error) {
-          if (error) {
-            console.error('QR Code generation error:', error);
-            alert('Failed to generate QR code');
-            setLoading(false);
-            return;
-          }
-          
-          // Download the canvas as PNG
-          const link = document.createElement('a');
-          link.download = `QR_${table.name.replace(/\s+/g, '_')}.png`;
-          link.href = canvas.toDataURL();
-          link.click();
-          
-          setLoading(false);
         });
-      };
+        console.log('QR Code generated successfully');
+      } catch (qrError) {
+        console.error('QR Code generation failed:', qrError);
+        throw qrError;
+      }
       
-      script.onerror = () => {
-        alert('Failed to load QR code library');
-        setLoading(false);
-      };
+      // Create a new canvas with QR code and info
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = 400;
+      finalCanvas.height = 500;
+      const ctx = finalCanvas.getContext('2d');
       
-      document.head.appendChild(script);
+      // Fill background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 400, 500);
+      
+      // Draw QR code in the center
+      ctx.drawImage(qrCanvas, 50, 20, 300, 300);
+      console.log('QR code drawn to final canvas');
+      
+      // Add table info below QR code
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Table: ${table.name}`, 200, 340);
+      ctx.fillText(`Number: ${table.tableNumber}`, 200, 360);
+      ctx.fillText(`Capacity: ${table.capacity}`, 200, 380);
+      
+      // Add geofencing info
+      ctx.font = '12px Arial';
+      ctx.fillText(`📍 Geofence: ${qrData.geofence.radius}m radius`, 200, 400);
+      ctx.fillText(`Lat: ${qrData.geofence.latitude}, Lng: ${qrData.geofence.longitude}`, 200, 420);
+      
+      // Download the canvas as PNG
+      const link = document.createElement('a');
+      link.download = `QR_${table.name.replace(/\s+/g, '_')}_${table.tableNumber}.png`;
+      link.href = finalCanvas.toDataURL();
+      link.click();
+      
+      console.log('QR code downloaded successfully');
+      setLoading(false);
     } catch (error) {
-      setError(apiUtils.handleError(error));
+      console.error('QR Code generation error:', error);
+      setError('Failed to generate QR code: ' + error.message);
       setLoading(false);
     }
   };
@@ -249,16 +325,16 @@ const TableManagement = () => {
     
     // For now, we'll download each QR code individually
     // In a real implementation, you'd use a library like JSZip
-    const activeTables = Array.isArray(tables) ? tables.filter(t => t.status === 'active') : [];
+    const availableTables = Array.isArray(tables) ? tables.filter(t => t.status === 'available') : [];
     
-    if (activeTables.length === 0) {
-      alert('No active tables to download QR codes for.');
+    if (availableTables.length === 0) {
+      alert('No available tables to download QR codes for.');
       setLoading(false);
       return;
     }
     
     // Download each QR code one by one
-    activeTables.forEach((table, index) => {
+    availableTables.forEach((table, index) => {
       setTimeout(() => {
         handleDownloadQR(table);
       }, index * 500); // Stagger downloads by 500ms
@@ -266,71 +342,110 @@ const TableManagement = () => {
     
     setTimeout(() => {
       setLoading(false);
-      alert(`Downloaded QR codes for ${activeTables.length} active tables!`);
-    }, activeTables.length * 500 + 1000);
+      alert(`Downloaded QR codes for ${availableTables.length} available tables!`);
+    }, availableTables.length * 500 + 1000);
   };
 
-  const handlePrintQR = (table) => {
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>QR Code - ${table.name}</title>
-          <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              text-align: center; 
-              padding: 20px;
-              margin: 0;
-            }
-            .qr-container {
-              display: inline-block;
-              padding: 20px;
-              border: 2px solid #333;
-              border-radius: 10px;
-              background: white;
-            }
-            .table-info {
-              margin-top: 15px;
-              font-size: 14px;
-              color: #666;
-            }
-            @media print {
-              body { margin: 0; }
-              .qr-container { border: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="qr-container">
-            <div id="qrcode"></div>
-            <div class="table-info">
-              <strong>${table.name}</strong><br>
-              Table: ${table.number}<br>
-              Capacity: ${table.capacity} seats<br>
-              Area: ${table.area}
-            </div>
-          </div>
-          <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-          <script>
-            QRCode.toCanvas(document.getElementById('qrcode'), '${table.qrCode}', {
-              width: 300,
-              margin: 2,
-              color: {
-                dark: '#000000',
-                light: '#FFFFFF'
+  const handlePrintQR = async (table) => {
+    try {
+      // Get QR code data from API
+      const response = await tableAPI.generateQR(table.id);
+      const qrData = response.data.qrData;
+      
+      // Generate QR code
+      const qrCanvas = document.createElement('canvas');
+      await QRCode.toCanvas(qrCanvas, qrData.url, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      // Convert QR code to data URL
+      const qrDataURL = qrCanvas.toDataURL();
+      
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>QR Code - ${table.name}</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                text-align: center; 
+                padding: 20px;
+                margin: 0;
               }
-            }, function (error) {
-              if (error) console.error(error);
+              .qr-container {
+                display: inline-block;
+                padding: 20px;
+                border: 2px solid #333;
+                border-radius: 10px;
+                background: white;
+                max-width: 400px;
+              }
+              .table-info {
+                margin-top: 15px;
+                font-size: 14px;
+                color: #666;
+              }
+              .qr-code {
+                margin: 20px auto;
+                display: block;
+              }
+              .url-display {
+                background: #f0f0f0;
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 5px;
+                font-family: monospace;
+                font-size: 12px;
+                word-break: break-all;
+              }
+              @media print {
+                body { margin: 0; }
+                .qr-container { border: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="qr-container">
+              <h2>Restaurant QR Code</h2>
+              <img src="${qrDataURL}" alt="QR Code" class="qr-code" />
+              <div class="table-info">
+                <strong>${table.name}</strong><br>
+                Table: ${table.tableNumber}<br>
+                Capacity: ${table.capacity} seats<br>
+                Area: ${table.area}
+              </div>
+              <div style="margin-top: 15px;">
+                <strong>Instructions:</strong><br>
+                1. Scan the QR code with your phone<br>
+                2. Allow location access<br>
+                3. Browse menu and place orders
+              </div>
+              <div class="url-display">
+                ${qrData.url}
+              </div>
+              <div style="margin-top: 10px; font-size: 12px; color: #999;">
+                Generated on: ${new Date().toLocaleDateString()}
+              </div>
+            </div>
+            <script>
               setTimeout(() => window.print(), 500);
-            });
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    } catch (error) {
+      console.error('Print QR error:', error);
+      alert('Failed to generate QR code for printing');
+    }
   };
 
   if (loading) {
@@ -370,6 +485,13 @@ const TableManagement = () => {
           <p className="text-gray-600">Manage restaurant tables and generate QR codes for customer ordering</p>
         </div>
         <div className="flex space-x-3">
+          <button
+            onClick={testQRGeneration}
+            className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 flex items-center space-x-2"
+          >
+            <QrCode className="w-5 h-5" />
+            <span>Test QR</span>
+          </button>
           <button
             onClick={handleBulkDownload}
             disabled={loading}
@@ -430,9 +552,10 @@ const TableManagement = () => {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="available">Available</option>
+              <option value="occupied">Occupied</option>
               <option value="reserved">Reserved</option>
+              <option value="cleaning">Cleaning</option>
             </select>
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
               <Filter className="w-4 h-4" />
@@ -469,8 +592,8 @@ const TableManagement = () => {
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">{table.name}</h3>
-                  <p className="text-sm text-gray-600">{table.number}</p>
+                  <h3 className="text-lg font-bold text-gray-900">{table.name || 'Unnamed Table'}</h3>
+                  <p className="text-sm text-gray-600">{table.tableNumber || 'No Number'}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
@@ -597,12 +720,12 @@ const TableManagement = () => {
                   </label>
                   <input
                     type="text"
-                    value={editingTable ? editingTable.number : newTable.number}
+                    value={editingTable ? editingTable.tableNumber : newTable.tableNumber}
                     onChange={(e) => {
                       if (editingTable) {
-                        setEditingTable({...editingTable, number: e.target.value});
+                        setEditingTable({...editingTable, tableNumber: e.target.value});
                       } else {
-                        setNewTable({...newTable, number: e.target.value});
+                        setNewTable({...newTable, tableNumber: e.target.value});
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -667,9 +790,10 @@ const TableManagement = () => {
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="available">Available</option>
+                    <option value="occupied">Occupied</option>
                     <option value="reserved">Reserved</option>
+                    <option value="cleaning">Cleaning</option>
                   </select>
                 </div>
               </div>
@@ -687,10 +811,10 @@ const TableManagement = () => {
                     setEditingTable(null);
                     setNewTable({
                       name: '',
-                      number: '',
+                      tableNumber: '',
                       capacity: 4,
                       area: 'Main Hall',
-                      status: 'active'
+                      status: 'available'
                     });
                   }}
                   className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"
@@ -712,7 +836,7 @@ const TableManagement = () => {
               
               <div className="bg-gray-100 p-6 rounded-lg mb-4">
                 <QRCodeGenerator 
-                  value={selectedTable.qrCodeUrl || `https://restaurant.com/order?table=${selectedTable.number}&restaurantId=${user?.restaurantId}`}
+                  value={selectedTable.qrCodeUrl || `https://restaurant.com/order?table=${selectedTable.tableNumber}&restaurantId=${user?.restaurantId}`}
                   size={200}
                   tableName={selectedTable.name}
                 />
@@ -720,13 +844,13 @@ const TableManagement = () => {
               
               <div className="text-left mb-4">
                 <p className="text-sm text-gray-600 mb-2">
-                  <strong>Table:</strong> {selectedTable.name} ({selectedTable.number})
+                  <strong>Table:</strong> {selectedTable.name || 'Unnamed Table'} ({selectedTable.tableNumber || 'No Number'})
                 </p>
                 <p className="text-sm text-gray-600 mb-2">
-                  <strong>QR URL:</strong> {selectedTable.qrCodeUrl || `https://restaurant.com/order?table=${selectedTable.number}&restaurantId=${user?.restaurantId}`}
+                  <strong>QR URL:</strong> {selectedTable.qrCodeUrl || `https://restaurant.com/order?table=${selectedTable.tableNumber}&restaurantId=${user?.restaurantId}`}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <strong>Capacity:</strong> {selectedTable.capacity} seats
+                  <strong>Capacity:</strong> {selectedTable.capacity || 0} seats
                 </p>
               </div>
               

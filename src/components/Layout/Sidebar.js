@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   Home, 
   Users, 
@@ -11,11 +12,24 @@ import {
   Building2,
   UserCheck,
   FileText,
-  Bell
+  Bell,
+  LogOut
 } from 'lucide-react';
 
 const Sidebar = ({ role, user }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      navigate('/login');
+    }
+  };
 
   const getMenuItems = () => {
     switch (role) {
@@ -53,7 +67,7 @@ const Sidebar = ({ role, user }) => {
   const menuItems = getMenuItems();
 
   return (
-    <div className="w-64 bg-gray-900 min-h-screen p-4">
+    <div className="w-64 bg-gray-900 min-h-screen p-4 flex flex-col">
       <div className="mb-8">
         <h1 className="text-white text-xl font-bold">
           {role === 'super_admin' ? 'Platform Admin' : 
@@ -62,7 +76,7 @@ const Sidebar = ({ role, user }) => {
         <p className="text-gray-400 text-sm">{user?.name || 'User'}</p>
       </div>
       
-      <nav>
+      <nav className="flex-1">
         <ul className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -88,7 +102,11 @@ const Sidebar = ({ role, user }) => {
       </nav>
       
       <div className="mt-auto pt-8">
-        <button className="w-full px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="w-full px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors flex items-center"
+        >
+          <LogOut className="w-5 h-5 mr-3" />
           Logout
         </button>
       </div>

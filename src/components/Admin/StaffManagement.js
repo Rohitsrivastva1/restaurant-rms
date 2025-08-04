@@ -11,7 +11,7 @@ import {
   X,
   Save
 } from 'lucide-react';
-import { userAPI, apiUtils } from '../../services/api';
+import { staffAPI, apiUtils } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const StaffManagement = () => {
@@ -40,13 +40,9 @@ const StaffManagement = () => {
         setLoading(true);
         setError('');
 
-        const response = await userAPI.getAllUsers();
-        // Filter staff for this restaurant (excluding super_admin and admin roles)
-        const restaurantStaff = response.data.filter(user => 
-          user.restaurantId === user?.restaurantId && 
-          ['chef', 'waiter', 'manager'].includes(user.role)
-        );
-        setStaff(restaurantStaff);
+        const response = await staffAPI.getAll({ restaurantId: user?.restaurantId });
+        console.log('Staff response:', response.data);
+        setStaff(response.data?.staff || []);
       } catch (error) {
         setError(apiUtils.handleError(error));
       } finally {
@@ -63,10 +59,9 @@ const StaffManagement = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await userAPI.createUser({
+      const response = await staffAPI.create({
         ...formData,
-        restaurantId: user.restaurantId,
-        password: 'defaultPassword123' // In real app, generate or let user set
+        restaurantId: user.restaurantId
       });
       
       setStaff(prev => [...prev, response.data]);
@@ -90,7 +85,7 @@ const StaffManagement = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await userAPI.updateUser(selectedStaff.id, formData);
+      const response = await staffAPI.update(selectedStaff.id, formData);
       
       setStaff(prev => prev.map(staff => 
         staff.id === selectedStaff.id ? response.data : staff
@@ -116,7 +111,7 @@ const StaffManagement = () => {
     if (window.confirm('Are you sure you want to delete this staff member?')) {
       try {
         setLoading(true);
-        await userAPI.deleteUser(staffId);
+        await staffAPI.delete(staffId);
         setStaff(prev => prev.filter(staff => staff.id !== staffId));
       } catch (error) {
         setError(apiUtils.handleError(error));
