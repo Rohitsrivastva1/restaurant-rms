@@ -28,7 +28,7 @@ const LiveOrders = () => {
           restaurantId: user?.restaurantId,
           status: ['received', 'in_progress', 'ready']
         });
-        setOrders(response.data);
+        setOrders(response.data.orders || []);
       } catch (error) {
         setError(apiUtils.handleError(error));
       } finally {

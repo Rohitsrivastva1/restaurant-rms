@@ -30,7 +30,7 @@ const OrderHistory = () => {
           status: 'completed',
           chefId: user?.id
         });
-        setCompletedOrders(response.data);
+        setCompletedOrders(response.data.orders || []);
       } catch (error) {
         setError(apiUtils.handleError(error));
       } finally {

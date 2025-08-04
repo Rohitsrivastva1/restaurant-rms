@@ -176,7 +176,8 @@ export const staffAPI = {
   update: (id, data) => api.put(`/staff/${id}`, data),
   delete: (id) => api.delete(`/staff/${id}`),
   getByRestaurant: (restaurantId) => api.get(`/staff/restaurant/${restaurantId}`),
-  getStats: () => api.get('/staff/stats'),
+  getStats: (params) => api.get('/staff/stats', { params }),
+  getRoleOptions: () => api.get('/staff/roles/options'),
 };
 
 // Utility functions

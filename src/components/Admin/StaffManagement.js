@@ -9,7 +9,10 @@ import {
   Star,
   CheckCircle,
   X,
-  Save
+  Save,
+  TrendingUp,
+  Clock,
+  UserCheck
 } from 'lucide-react';
 import { staffAPI, apiUtils } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,25 +27,36 @@ const StaffManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [staff, setStaff] = useState([]);
+  const [stats, setStats] = useState({});
+  const [roleOptions, setRoleOptions] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    password: '',
     role: 'waiter',
-    salary: '',
     status: 'active'
   });
 
-  // Fetch staff from API
+  // Fetch staff and stats from API
   useEffect(() => {
-    const fetchStaff = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError('');
 
-        const response = await staffAPI.getAll({ restaurantId: user?.restaurantId });
-        console.log('Staff response:', response.data);
-        setStaff(response.data?.staff || []);
+        // Fetch staff list
+        const staffResponse = await staffAPI.getAll({ restaurantId: user?.restaurantId });
+        setStaff(staffResponse.data?.staff || []);
+
+        // Fetch staff statistics
+        const statsResponse = await staffAPI.getStats({ restaurantId: user?.restaurantId });
+        setStats(statsResponse.data || {});
+
+        // Fetch role options
+        const roleResponse = await staffAPI.getRoleOptions();
+        setRoleOptions(roleResponse.data || []);
+
       } catch (error) {
         setError(apiUtils.handleError(error));
       } finally {
@@ -51,7 +65,7 @@ const StaffManagement = () => {
     };
 
     if (user?.restaurantId) {
-      fetchStaff();
+      fetchData();
     }
   }, [user?.restaurantId]);
 
@@ -65,13 +79,18 @@ const StaffManagement = () => {
       });
       
       setStaff(prev => [...prev, response.data]);
+      
+      // Refresh stats
+      const statsResponse = await staffAPI.getStats({ restaurantId: user?.restaurantId });
+      setStats(statsResponse.data || {});
+      
       setShowAddModal(false);
       setFormData({
         name: '',
         email: '',
         phone: '',
+        password: '',
         role: 'waiter',
-        salary: '',
         status: 'active'
       });
     } catch (error) {
@@ -90,14 +109,19 @@ const StaffManagement = () => {
       setStaff(prev => prev.map(staff => 
         staff.id === selectedStaff.id ? response.data : staff
       ));
+      
+      // Refresh stats
+      const statsResponse = await staffAPI.getStats({ restaurantId: user?.restaurantId });
+      setStats(statsResponse.data || {});
+      
       setShowEditModal(false);
       setSelectedStaff(null);
       setFormData({
         name: '',
         email: '',
         phone: '',
+        password: '',
         role: 'waiter',
-        salary: '',
         status: 'active'
       });
     } catch (error) {
@@ -113,6 +137,10 @@ const StaffManagement = () => {
         setLoading(true);
         await staffAPI.delete(staffId);
         setStaff(prev => prev.filter(staff => staff.id !== staffId));
+        
+        // Refresh stats
+        const statsResponse = await staffAPI.getStats({ restaurantId: user?.restaurantId });
+        setStats(statsResponse.data || {});
       } catch (error) {
         setError(apiUtils.handleError(error));
       } finally {
@@ -127,8 +155,8 @@ const StaffManagement = () => {
       name: staff.name,
       email: staff.email,
       phone: staff.phone,
+      password: '', // Don't show existing password
       role: staff.role,
-      salary: staff.salary || '',
       status: staff.status
     });
     setShowEditModal(true);
@@ -159,30 +187,42 @@ const StaffManagement = () => {
     return matchesSearch && matchesRole;
   });
 
-  const stats = [
+  const statsCards = [
     {
       title: 'Total Staff',
-      value: staff.length,
+      value: stats.totalStaff || 0,
       color: 'bg-blue-500',
       icon: Users
     },
     {
-      title: 'Active',
-      value: staff.filter(s => s.status === 'active').length,
+      title: 'Active Staff',
+      value: stats.activeStaff || 0,
       color: 'bg-green-500',
       icon: CheckCircle
     },
     {
       title: 'Chefs',
-      value: staff.filter(s => s.role === 'chef').length,
+      value: stats.chefs || 0,
       color: 'bg-orange-500',
       icon: Users
     },
     {
       title: 'Waiters',
-      value: staff.filter(s => s.role === 'waiter').length,
+      value: stats.waiters || 0,
       color: 'bg-blue-500',
       icon: Users
+    },
+    {
+      title: 'Managers',
+      value: stats.managers || 0,
+      color: 'bg-purple-500',
+      icon: UserCheck
+    },
+    {
+      title: 'On Leave',
+      value: stats.onLeave || 0,
+      color: 'bg-yellow-500',
+      icon: Clock
     }
   ];
 
@@ -231,8 +271,8 @@ const StaffManagement = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div key={index} className="bg-white rounded-lg shadow p-6">
@@ -272,9 +312,11 @@ const StaffManagement = () => {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Roles</option>
-              <option value="chef">Chef</option>
-              <option value="waiter">Waiter</option>
-              <option value="manager">Manager</option>
+              {roleOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
               <Filter className="w-4 h-4" />
@@ -356,30 +398,9 @@ const StaffManagement = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Join Date:</span>
-                    <span className="text-sm text-gray-900">{employee.createdAt ? new Date(employee.createdAt).toLocaleDateString() : 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Salary:</span>
-                    <span className="text-sm font-medium text-gray-900">₹{employee.salary ? employee.salary.toLocaleString() : 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Rating:</span>
-                    <div className="flex items-center">
-                      <span className="text-sm text-gray-900">{employee.rating || 'N/A'}</span>
-                      <Star className="w-4 h-4 text-yellow-400 ml-1" />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Performance:</span>
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-green-500 h-2 rounded-full" 
-                          style={{ width: `${employee.performance || 0}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm text-gray-500 ml-2">{employee.performance || 0}%</span>
-                    </div>
+                    <span className="text-sm text-gray-900">
+                      {employee.createdAt ? new Date(employee.createdAt).toLocaleDateString() : 'N/A'}
+                    </span>
                   </div>
                 </div>
 
@@ -443,25 +464,28 @@ const StaffManagement = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Role</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({...formData, role: e.target.value})}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="waiter">Waiter</option>
-                  <option value="chef">Chef</option>
-                  <option value="manager">Manager</option>
+                  {roleOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Salary</label>
-                <input
-                  type="number"
-                  value={formData.salary}
-                  onChange={(e) => setFormData({...formData, salary: e.target.value})}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Status</label>
@@ -541,25 +565,28 @@ const StaffManagement = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700">New Password (optional)</label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Leave blank to keep current password"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Role</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({...formData, role: e.target.value})}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="waiter">Waiter</option>
-                  <option value="chef">Chef</option>
-                  <option value="manager">Manager</option>
+                  {roleOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Salary</label>
-                <input
-                  type="number"
-                  value={formData.salary}
-                  onChange={(e) => setFormData({...formData, salary: e.target.value})}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Status</label>
