@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Users, 
   Plus, 
@@ -16,6 +17,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const AdminUserManagement = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -32,6 +34,16 @@ const AdminUserManagement = () => {
   });
   const [availableRestaurants, setAvailableRestaurants] = useState([]);
   const [loadingRestaurants, setLoadingRestaurants] = useState(false);
+
+  // Handle URL parameters for Quick Actions
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const action = urlParams.get('action');
+    
+    if (action === 'create') {
+      setShowCreateModal(true);
+    }
+  }, [location.search]);
 
   // Fetch users from API
   useEffect(() => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Building2, 
   Users, 
@@ -7,19 +8,25 @@ import {
   Clock,
   TrendingUp,
   DollarSign,
-  Activity
+  Activity,
+  Plus,
+  Eye,
+  Settings
 } from 'lucide-react';
 import { superAdminAPI, apiUtils } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [dashboardData, setDashboardData] = useState({
     stats: [],
     recentActivity: []
   });
+  const [showQuickActionModal, setShowQuickActionModal] = useState(false);
+  const [quickActionType, setQuickActionType] = useState('');
 
   // Fetch dashboard data from API
   useEffect(() => {
@@ -185,6 +192,38 @@ const SuperAdminDashboard = () => {
 
   const recentActivity = dashboardData.recentActivity;
 
+  // Quick Actions handlers
+  const handleQuickAction = (actionType) => {
+    switch (actionType) {
+      case 'add-restaurant':
+        navigate('/superadmin/restaurants?action=create');
+        break;
+      case 'create-admin':
+        navigate('/superadmin/admins?action=create');
+        break;
+      case 'review-pending':
+        navigate('/superadmin/restaurants?status=pending');
+        break;
+      case 'view-reports':
+        navigate('/superadmin/reports');
+        break;
+      case 'platform-settings':
+        navigate('/superadmin/settings');
+        break;
+      case 'user-management':
+        navigate('/superadmin/admins');
+        break;
+      case 'cart-management':
+        navigate('/superadmin/carts');
+        break;
+      case 'add-cart':
+        navigate('/superadmin/carts?action=create');
+        break;
+      default:
+        console.log('Unknown action:', actionType);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -255,18 +294,69 @@ const SuperAdminDashboard = () => {
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-            <Building2 className="h-5 w-5 text-blue-600 mr-2" />
-            <span className="text-sm font-medium">Add Restaurant</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button 
+            onClick={() => handleQuickAction('add-restaurant')}
+            className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group"
+          >
+            <Building2 className="h-5 w-5 text-blue-600 mr-2 group-hover:text-blue-700" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">Add Restaurant</span>
           </button>
-          <button className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-            <Users className="h-5 w-5 text-green-600 mr-2" />
-            <span className="text-sm font-medium">Create Admin User</span>
+          
+          <button 
+            onClick={() => handleQuickAction('create-admin')}
+            className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors group"
+          >
+            <Users className="h-5 w-5 text-green-600 mr-2 group-hover:text-green-700" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-green-700">Create Admin User</span>
           </button>
-          <button className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-            <CheckCircle className="h-5 w-5 text-purple-600 mr-2" />
-            <span className="text-sm font-medium">Review Pending</span>
+          
+          <button 
+            onClick={() => handleQuickAction('review-pending')}
+            className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-yellow-50 hover:border-yellow-300 transition-colors group"
+          >
+            <Clock className="h-5 w-5 text-yellow-600 mr-2 group-hover:text-yellow-700" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-yellow-700">Review Pending</span>
+          </button>
+          
+          <button 
+            onClick={() => handleQuickAction('view-reports')}
+            className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors group"
+          >
+            <TrendingUp className="h-5 w-5 text-purple-600 mr-2 group-hover:text-purple-700" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-purple-700">View Reports</span>
+          </button>
+          
+          <button 
+            onClick={() => handleQuickAction('platform-settings')}
+            className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors group"
+          >
+            <Settings className="h-5 w-5 text-gray-600 mr-2 group-hover:text-gray-700" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-700">Platform Settings</span>
+          </button>
+          
+          <button 
+            onClick={() => handleQuickAction('user-management')}
+            className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-colors group"
+          >
+            <Eye className="h-5 w-5 text-indigo-600 mr-2 group-hover:text-indigo-700" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">User Management</span>
+          </button>
+          
+          <button 
+            onClick={() => handleQuickAction('cart-management')}
+            className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-colors group"
+          >
+            <ShoppingCart className="h-5 w-5 text-orange-600 mr-2 group-hover:text-orange-700" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-orange-700">Cart Management</span>
+          </button>
+          
+          <button 
+            onClick={() => handleQuickAction('add-cart')}
+            className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-teal-50 hover:border-teal-300 transition-colors group"
+          >
+            <Plus className="h-5 w-5 text-teal-600 mr-2 group-hover:text-teal-700" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-teal-700">Add Cart</span>
           </button>
         </div>
       </div>

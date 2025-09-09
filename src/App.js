@@ -8,11 +8,26 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 // Layout Components
 import DashboardLayout from './components/Layout/DashboardLayout';
 
+// Navigation
+import Navbar from './components/Navigation/Navbar';
+
 // Auth Components
 import Login from './components/Auth/Login';
 import Logout from './components/Auth/Logout';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import SuperAdminSignup from './components/Auth/SuperAdminSignup';
+
+// Landing & Public Pages
+import LandingPage from './components/Landing/LandingPage';
+import HomePage from './components/Pages/HomePage';
+import AboutPage from './components/Pages/AboutPage';
+import ContactPage from './components/Pages/ContactPage';
+import PricingPage from './components/Pages/PricingPage';
+
+// Legal Pages
+import PrivacyPolicy from './components/Pages/Legal/PrivacyPolicy';
+import TermsOfService from './components/Pages/Legal/TermsOfService';
+import CookiePolicy from './components/Pages/Legal/CookiePolicy';
 
 // SuperAdmin Components
 import SuperAdminDashboard from './components/SuperAdmin/Dashboard';
@@ -20,6 +35,7 @@ import RestaurantManagement from './components/SuperAdmin/RestaurantManagement';
 import AdminUserManagement from './components/SuperAdmin/AdminUserManagement';
 import PlatformSettings from './components/SuperAdmin/PlatformSettings';
 import Reports from './components/SuperAdmin/Reports';
+import CartManagement from './components/SuperAdmin/CartManagement';
 
 // Admin Components
 import AdminDashboard from './components/Admin/Dashboard';
@@ -51,6 +67,14 @@ function AppContent() {
       <div className="App">
         <Routes>
           {/* Public routes - accessible without authentication */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/superadmin-signup" element={<SuperAdminSignup />} />
@@ -105,6 +129,16 @@ function AppContent() {
               <ProtectedRoute>
                 <DashboardLayout role={user?.role} user={user}>
                   <Reports />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/superadmin/carts" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout role={user?.role} user={user}>
+                  <CartManagement />
                 </DashboardLayout>
               </ProtectedRoute>
             } 
@@ -231,7 +265,7 @@ function AppContent() {
               user ? (
                 <Navigate to={`/${user.role === 'super_admin' ? 'superadmin' : user.role === 'admin' || user.role === 'manager' ? 'admin' : 'chef'}`} replace />
               ) : (
-                <Navigate to="/login" replace />
+                <Navigate to="/" replace />
               )
             } 
           />

@@ -158,6 +158,13 @@ export const superAdminAPI = {
   getRestaurantReport: (params) => api.get('/superadmin/reports/restaurants', { params }),
   getSettings: () => api.get('/superadmin/settings'),
   updateSettings: (settings) => api.put('/superadmin/settings', settings),
+  // Cart Management
+  getCarts: (params) => api.get('/cart/admin/carts', { params }),
+  getCartById: (id) => api.get(`/cart/admin/carts/${id}`),
+  createCart: (cartData) => api.post('/cart/admin/carts', cartData),
+  updateCart: (id, cartData) => api.put(`/cart/admin/carts/${id}`, cartData),
+  approveCart: (id) => api.put(`/cart/admin/carts/${id}/approve`),
+  suspendCart: (id) => api.put(`/cart/admin/carts/${id}/suspend`),
 };
 
 // Restaurant Users API calls (for restaurant owners/managers)
@@ -178,6 +185,30 @@ export const staffAPI = {
   getByRestaurant: (restaurantId) => api.get(`/staff/restaurant/${restaurantId}`),
   getStats: (params) => api.get('/staff/stats', { params }),
   getRoleOptions: () => api.get('/staff/roles/options'),
+};
+
+// Cart Management API calls
+export const cartAPI = {
+  // Public APIs (no authentication required)
+  getCartByQR: (qrCode) => api.get(`/cart/public/qr/${qrCode}`),
+  createOrder: (orderData) => api.post('/cart/public/orders', orderData),
+  getOrderStatus: (orderNumber) => api.get(`/cart/public/orders/${orderNumber}/status`),
+  
+  // Cart Owner APIs
+  getOwnerCarts: (params) => api.get('/cart/owner/carts', { params }),
+  getOwnerCartById: (id) => api.get(`/cart/owner/carts/${id}`),
+  createOwnerCart: (cartData) => api.post('/cart/owner/carts', cartData),
+  updateOwnerCart: (id, cartData) => api.put(`/cart/owner/carts/${id}`, cartData),
+  createMenuCategory: (cartId, categoryData) => api.post(`/cart/owner/carts/${cartId}/categories`, categoryData),
+  createMenuItem: (cartId, itemData) => api.post(`/cart/owner/carts/${cartId}/menu-items`, itemData),
+  addWorker: (cartId, workerData) => api.post(`/cart/owner/carts/${cartId}/workers`, workerData),
+  removeWorker: (cartId, userId) => api.delete(`/cart/owner/carts/${cartId}/workers/${userId}`),
+  getCartAnalytics: (cartId, params) => api.get(`/cart/owner/carts/${cartId}/analytics`, { params }),
+  
+  // Cart Worker APIs
+  getWorkerCarts: (params) => api.get('/cart/worker/carts', { params }),
+  getCartOrders: (cartId) => api.get(`/cart/worker/carts/${cartId}/orders`),
+  updateOrderStatus: (orderId, statusData) => api.put(`/cart/worker/orders/${orderId}/status`, statusData),
 };
 
 // Utility functions

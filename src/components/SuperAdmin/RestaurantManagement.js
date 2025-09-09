@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Building2, 
   Plus, 
@@ -18,6 +19,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const RestaurantManagement = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,21 @@ const RestaurantManagement = () => {
     description: ''
   });
   const [creating, setCreating] = useState(false);
+
+  // Handle URL parameters for Quick Actions
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const action = urlParams.get('action');
+    const status = urlParams.get('status');
+    
+    if (action === 'create') {
+      setShowCreateModal(true);
+    }
+    
+    if (status) {
+      setFilterStatus(status);
+    }
+  }, [location.search]);
 
   // Fetch restaurants from API
   useEffect(() => {
