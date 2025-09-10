@@ -1,31 +1,29 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Eye, 
   EyeOff, 
   User, 
   Lock, 
-  Building2, 
-  ChefHat, 
-  Users,
+  Building2,
   AlertCircle,
   CheckCircle,
-  Crown
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, error: authError, clearError } = useAuth();
+  const { login, user, error: authError, clearError } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    role: 'admin' // admin, chef, manager
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // Removed useEffect redirect logic - using direct redirect instead
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -68,122 +66,66 @@ const Login = () => {
     clearError();
 
     try {
-      const result = await login(formData);
+      // Try to login without role - let backend determine the role
+      const result = await login({
+        email: formData.email,
+        password: formData.password
+      });
+      
+      console.log('Login result:', result); // Debug log
+      console.log('User from result:', result.user); // Debug log
+      console.log('User role:', result.user?.role); // Debug log
       
       if (result.success) {
         setSuccess(`Welcome back, ${result.user.name}!`);
         
-        // Redirect based on role
+        // Direct redirect instead of relying on useEffect
         const redirectMap = {
           'admin': '/admin',
           'manager': '/admin',
           'chef': '/chef',
-          'super_admin': '/superadmin'
+          'super_admin': '/superadmin',
+          'cart_owner': '/cart-owner',
+          'cart_worker': '/cart-worker'
         };
         
         const redirectPath = redirectMap[result.user.role] || '/admin';
+        console.log('Direct redirect to:', redirectPath);
+        console.log('About to navigate in 1 second...');
         
+        // Use a small delay to ensure state is updated
         setTimeout(() => {
+          console.log('Navigating now to:', redirectPath);
           navigate(redirectPath);
         }, 1000);
       } else {
-        setError(result.error || 'Login failed. Please try again.');
+        setError(result.error || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
+      console.error('Login error:', error); // Debug log
       setError('An error occurred during login. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const roleOptions = [
-    {
-      value: 'super_admin',
-      label: 'Super Admin',
-      icon: Crown,
-      description: 'Platform administrator with full system access'
-    },
-    {
-      value: 'admin',
-      label: 'Restaurant Owner',
-      icon: Building2,
-      description: 'Full access to all restaurant operations'
-    },
-    {
-      value: 'manager',
-      label: 'Restaurant Manager',
-      icon: Users,
-      description: 'Manage staff, orders, and daily operations'
-    },
-    {
-      value: 'chef',
-      label: 'Kitchen Staff',
-      icon: ChefHat,
-      description: 'View and manage kitchen orders'
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <Building2 className="h-8 w-8 text-white" />
-          </div>
+          <Link to="/" className="inline-block">
+            <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4 hover:bg-blue-700 transition-colors">
+              <Building2 className="h-8 w-8 text-white" />
+            </div>
+          </Link>
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
-          <p className="mt-2 text-gray-600">Sign in to your restaurant management account</p>
+          <p className="mt-2 text-gray-600">Sign in to your Servya account</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white rounded-lg shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Role Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Select Your Role
-              </label>
-              <div className="grid grid-cols-1 gap-3">
-                {roleOptions.map((role) => {
-                  const Icon = role.icon;
-                  return (
-                    <label
-                      key={role.value}
-                      className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
-                        formData.role === role.value
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="role"
-                        value={role.value}
-                        checked={formData.role === role.value}
-                        onChange={handleInputChange}
-                        className="sr-only"
-                      />
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg ${
-                          formData.role === role.value ? 'bg-blue-100' : 'bg-gray-100'
-                        }`}>
-                          <Icon className={`h-5 w-5 ${
-                            formData.role === role.value ? 'text-blue-600' : 'text-gray-500'
-                          }`} />
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">{role.label}</div>
-                          <div className="text-xs text-gray-500">{role.description}</div>
-                        </div>
-                        {formData.role === role.value && (
-                          <CheckCircle className="h-5 w-5 text-blue-600" />
-                        )}
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
 
             {/* Email Input */}
             <div>
@@ -267,30 +209,40 @@ const Login = () => {
                   <span>Signing in...</span>
                 </div>
               ) : (
-                'Sign In'
+                <div className="flex items-center space-x-2">
+                  <span>Sign In</span>
+                  <ArrowRight className="h-4 w-4" />
+                </div>
               )}
             </button>
           </form>
 
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Demo Credentials</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-3">Demo Credentials</h4>
             <div className="space-y-2 text-xs text-gray-600">
-              <div>
-                <strong>Restaurant Owner:</strong> admin@spicegarden.com / admin123
+              <div className="flex justify-between">
+                <span><strong>Super Admin:</strong></span>
+                <span>test@superadmin.com / admin123</span>
               </div>
-              <div>
-                <strong>Restaurant Manager:</strong> manager@spicegarden.com / manager123
+              <div className="flex justify-between">
+                <span><strong>Restaurant Owner:</strong></span>
+                <span>admin@spicegarden.com / admin123</span>
               </div>
-              <div>
-                <strong>Kitchen Staff:</strong> chef@spicegarden.com / chef123
+              <div className="flex justify-between">
+                <span><strong>Restaurant Manager:</strong></span>
+                <span>manager@spicegarden.com / manager123</span>
+              </div>
+              <div className="flex justify-between">
+                <span><strong>Kitchen Staff:</strong></span>
+                <span>chef@spicegarden.com / chef123</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="text-center">
+        <div className="text-center space-y-4">
           <p className="text-sm text-gray-500">
             Don't have an account?{' '}
             <button 
@@ -300,6 +252,21 @@ const Login = () => {
               Create SuperAdmin Account
             </button>
           </p>
+          <p className="text-sm text-gray-500">
+            Want to manage your food cart?{' '}
+            <button 
+              onClick={() => navigate('/cart-owner-signup')}
+              className="text-orange-600 hover:text-orange-500 font-medium"
+            >
+              Create Cart Owner Account
+            </button>
+          </p>
+          <div className="flex justify-center space-x-4 text-sm">
+            <Link to="/" className="text-gray-500 hover:text-blue-600">Home</Link>
+            <Link to="/about" className="text-gray-500 hover:text-blue-600">About</Link>
+            <Link to="/contact" className="text-gray-500 hover:text-blue-600">Contact</Link>
+            <Link to="/login-test" className="text-gray-500 hover:text-blue-600">Login Test</Link>
+          </div>
         </div>
       </div>
     </div>

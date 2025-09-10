@@ -1,111 +1,153 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   ShoppingCart, 
-  Users, 
-  DollarSign, 
-  TrendingUp, 
   Plus, 
-  Settings, 
-  BarChart3,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  Edit,
-  Trash2
+  Eye, 
+  Edit, 
+  Trash2, 
+  QrCode,
+  Users,
+  TrendingUp,
+  Settings,
+  LogOut,
+  Bell,
+  Search,
+  Filter,
+  ChefHat
 } from 'lucide-react';
-import { cartAPI } from '../../services/api';
 
 const CartOwnerDashboard = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [carts, setCarts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalCarts: 0,
-    totalRevenue: 0,
-    totalOrders: 0,
-    activeWorkers: 0
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [createSuccess, setCreateSuccess] = useState('');
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    description: '',
+    location: '',
+    theme: 'modern'
   });
-  const [recentOrders, setRecentOrders] = useState([]);
-  const [selectedCart, setSelectedCart] = useState(null);
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchCarts();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchCarts = async () => {
     try {
       setLoading(true);
-      
-      // Fetch carts
-      const cartsResponse = await cartAPI.getOwnerCarts();
-      setCarts(cartsResponse.data || []);
-      
-      // Calculate stats
-      const totalRevenue = cartsResponse.data?.reduce((sum, cart) => sum + (cart.totalRevenue || 0), 0) || 0;
-      const totalOrders = cartsResponse.data?.reduce((sum, cart) => sum + (cart.totalOrders || 0), 0) || 0;
-      const activeWorkers = cartsResponse.data?.reduce((sum, cart) => sum + (cart.activeWorkers || 0), 0) || 0;
-      
-      setStats({
-        totalCarts: cartsResponse.data?.length || 0,
-        totalRevenue,
-        totalOrders,
-        activeWorkers
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/cart/owner/carts', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      // Fetch recent orders for the first cart
-      if (cartsResponse.data?.length > 0) {
-        setSelectedCart(cartsResponse.data[0]);
-        await fetchRecentOrders(cartsResponse.data[0].id);
+      if (response.ok) {
+        const data = await response.json();
+        setCarts(data.carts || []);
+      } else {
+        setError('Failed to fetch carts');
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      setError('Error fetching carts');
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchRecentOrders = async (cartId) => {
+  const handleLogout = () => {
+    logout();
+  };
+
+  const handleCreateCart = async (e) => {
+    e.preventDefault();
+    setCreateLoading(true);
+    setCreateError('');
+    setCreateSuccess('');
+
     try {
-      const response = await cartAPI.getCartOrders(cartId);
-      setRecentOrders(response.data?.slice(0, 5) || []);
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/cart/owner/carts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(createForm)
+      });
+
+      if (response.ok) {
+        const newCart = await response.json();
+        setCarts(prev => [newCart, ...prev]);
+        setCreateSuccess('Cart created successfully!');
+        setCreateForm({ name: '', description: '', location: '', theme: 'modern' });
+        setShowCreateModal(false);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setCreateSuccess(''), 3000);
+      } else {
+        const errorData = await response.json();
+        setCreateError(errorData.message || 'Failed to create cart');
+      }
     } catch (error) {
-      console.error('Error fetching recent orders:', error);
+      setCreateError('Error creating cart');
+      console.error('Error:', error);
+    } finally {
+      setCreateLoading(false);
     }
   };
 
-  const handleCreateCart = () => {
-    // Navigate to create cart page
-    window.location.href = '/cart-owner/carts/create';
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCreateForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handleManageCart = (cartId) => {
-    // Navigate to cart management page
-    window.location.href = `/cart-owner/carts/${cartId}`;
-  };
+  const filteredCarts = carts.filter(cart => {
+    const matchesSearch = cart.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         cart.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || cart.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  });
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'text-green-600 bg-green-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'suspended': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'suspended': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getOrderStatusColor = (status) => {
+  const getStatusText = (status) => {
     switch (status) {
-      case 'completed': return 'text-green-600 bg-green-100';
-      case 'in_progress': return 'text-blue-600 bg-blue-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'cancelled': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'active': return 'Active';
+      case 'pending': return 'Pending Approval';
+      case 'suspended': return 'Suspended';
+      default: return status;
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your carts...</p>
+        </div>
       </div>
     );
   }
@@ -113,227 +155,332 @@ const CartOwnerDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Cart Owner Dashboard</h1>
-              <p className="mt-1 text-sm text-gray-500">Manage your food carts and track performance</p>
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <ShoppingCart className="h-8 w-8 text-orange-600" />
+              <h1 className="ml-2 text-xl font-semibold text-gray-900">Cart Owner Dashboard</h1>
             </div>
-            <button
-              onClick={handleCreateCart}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Cart
-            </button>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Bell className="h-5 w-5 text-gray-400" />
+                <Settings className="h-5 w-5 text-gray-400" />
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-700">Welcome, {user?.name}</span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <ShoppingCart className="h-6 w-6 text-orange-600" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Carts</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stats.totalCarts}</dd>
-                  </dl>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <ShoppingCart className="h-8 w-8 text-orange-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total Carts</p>
+                <p className="text-2xl font-semibold text-gray-900">{carts.length}</p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <DollarSign className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
-                    <dd className="text-lg font-medium text-gray-900">₹{stats.totalRevenue.toLocaleString()}</dd>
-                  </dl>
-                </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <TrendingUp className="h-8 w-8 text-green-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Active Carts</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {carts.filter(cart => cart.status === 'active').length}
+                </p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <TrendingUp className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Orders</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stats.totalOrders}</dd>
-                  </dl>
-                </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <Eye className="h-8 w-8 text-yellow-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Pending</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {carts.filter(cart => cart.status === 'pending').length}
+                </p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Users className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Active Workers</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stats.activeWorkers}</dd>
-                  </dl>
-                </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <Users className="h-8 w-8 text-blue-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Workers</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {carts.reduce((total, cart) => total + (cart.workers?.length || 0), 0)}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Carts List */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Your Carts</h3>
-              <div className="space-y-4">
-                {carts.length === 0 ? (
-                  <div className="text-center py-8">
-                    <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No carts yet</h3>
-                    <p className="mt-1 text-sm text-gray-500">Get started by creating your first cart.</p>
-                    <div className="mt-6">
+        {/* Search and Filter */}
+        <div className="bg-white rounded-lg shadow mb-6 p-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search carts by name or location..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-400" />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center space-x-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Cart</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Carts List */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Your Carts</h2>
+          </div>
+          
+          {error && (
+            <div className="px-6 py-4 text-red-600">
+              {error}
+            </div>
+          )}
+
+          {filteredCarts.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No carts found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {searchTerm || filterStatus !== 'all' 
+                  ? 'Try adjusting your search or filter criteria.'
+                  : 'Get started by creating your first cart.'
+                }
+              </p>
+              <div className="mt-6">
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Cart
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {filteredCarts.map((cart) => (
+                <div key={cart.id} className="px-6 py-4 hover:bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <h3 className="text-lg font-medium text-gray-900">{cart.name}</h3>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(cart.status)}`}>
+                          {getStatusText(cart.status)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-500">{cart.description}</p>
+                      <p className="mt-1 text-sm text-gray-500">📍 {cart.location}</p>
+                      <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                        <span>Created: {new Date(cart.createdAt).toLocaleDateString()}</span>
+                        <span>Workers: {cart.workers?.length || 0}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
                       <button
-                        onClick={handleCreateCart}
-                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
+                        onClick={() => navigate(`/cart-owner/menu/${cart.id}`)}
+                        className="p-2 text-gray-400 hover:text-orange-600"
+                        title="Manage Menu"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Cart
+                        <ChefHat className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => {/* TODO: View cart details */}}
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => {/* TODO: Edit cart */}}
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                        title="Edit Cart"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => {/* TODO: Generate QR Code */}}
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                        title="QR Code"
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => {/* TODO: Delete cart */}}
+                        className="p-2 text-gray-400 hover:text-red-600"
+                        title="Delete Cart"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
-                ) : (
-                  carts.map((cart) => (
-                    <div key={cart.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-lg font-medium text-gray-900">{cart.name}</h4>
-                          <p className="text-sm text-gray-500">{cart.location}</p>
-                          <div className="mt-2 flex items-center space-x-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(cart.status)}`}>
-                              {cart.status}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              {cart.totalOrders || 0} orders
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              ₹{cart.totalRevenue || 0}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleManageCart(cart.id)}
-                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </button>
-                          <button
-                            onClick={() => window.location.href = `/cart-owner/carts/${cart.id}/edit`}
-                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Orders */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Orders</h3>
-              {selectedCart ? (
-                <div className="space-y-3">
-                  {recentOrders.length === 0 ? (
-                    <div className="text-center py-4">
-                      <Clock className="mx-auto h-8 w-8 text-gray-400" />
-                      <p className="mt-2 text-sm text-gray-500">No recent orders</p>
-                    </div>
-                  ) : (
-                    recentOrders.map((order) => (
-                      <div key={order.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">Order #{order.orderNumber}</p>
-                          <p className="text-sm text-gray-500">{order.customerName || 'Walk-in Customer'}</p>
-                          <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleString()}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
-                            {order.status}
-                          </span>
-                          <span className="text-sm font-medium text-gray-900">₹{order.finalAmount}</span>
-                        </div>
-                      </div>
-                    ))
-                  )}
                 </div>
-              ) : (
-                <div className="text-center py-4">
-                  <AlertCircle className="mx-auto h-8 w-8 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">Select a cart to view orders</p>
-                </div>
-              )}
+              ))}
             </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-8 bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button
-                onClick={handleCreateCart}
-                className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-colors group"
-              >
-                <Plus className="h-5 w-5 text-orange-600 mr-2 group-hover:text-orange-700" />
-                <span className="text-sm font-medium text-gray-700 group-hover:text-orange-700">Add New Cart</span>
-              </button>
-              
-              <button
-                onClick={() => window.location.href = '/cart-owner/menu'}
-                className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group"
-              >
-                <Settings className="h-5 w-5 text-blue-600 mr-2 group-hover:text-blue-700" />
-                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">Manage Menu</span>
-              </button>
-              
-              <button
-                onClick={() => window.location.href = '/cart-owner/analytics'}
-                className="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors group"
-              >
-                <BarChart3 className="h-5 w-5 text-green-600 mr-2 group-hover:text-green-700" />
-                <span className="text-sm font-medium text-gray-700 group-hover:text-green-700">View Analytics</span>
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Success Message */}
+      {createSuccess && (
+        <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+          {createSuccess}
+        </div>
+      )}
+
+      {/* Create Cart Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Create New Cart</h3>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <form onSubmit={handleCreateCart} className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    Cart Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={createForm.name}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Enter cart name"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={createForm.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Enter cart description"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                    Location *
+                  </label>
+                  <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    value={createForm.location}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Enter cart location"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
+                    Theme
+                  </label>
+                  <select
+                    id="theme"
+                    name="theme"
+                    value={createForm.theme}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="modern">Modern</option>
+                    <option value="classic">Classic</option>
+                    <option value="minimal">Minimal</option>
+                  </select>
+                </div>
+                
+                {createError && (
+                  <div className="text-red-600 text-sm">{createError}</div>
+                )}
+                
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createLoading}
+                    className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+                  >
+                    {createLoading ? 'Creating...' : 'Create Cart'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

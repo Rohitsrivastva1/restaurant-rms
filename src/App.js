@@ -16,6 +16,8 @@ import Login from './components/Auth/Login';
 import Logout from './components/Auth/Logout';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import SuperAdminSignup from './components/Auth/SuperAdminSignup';
+import CartOwnerSignup from './components/Auth/CartOwnerSignup';
+import LoginTest from './components/Auth/LoginTest';
 
 // Landing & Public Pages
 import LandingPage from './components/Landing/LandingPage';
@@ -55,6 +57,14 @@ import ChefProfile from './components/Chef/ChefProfile';
 // Customer Components
 import MenuScreen from './components/Customer/MenuScreen';
 
+// Cart Owner Components
+import CartOwnerDashboard from './components/CartOwner/Dashboard';
+import CartMenuManagement from './components/CartOwner/MenuManagement';
+import ExcelUpload from './components/CartOwner/ExcelUpload';
+
+// Cart Worker Components
+import CartWorkerDashboard from './components/CartWorker/Dashboard';
+
 function AppContent() {
   const { user, loading } = useAuth();
 
@@ -78,6 +88,8 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/superadmin-signup" element={<SuperAdminSignup />} />
+          <Route path="/cart-owner-signup" element={<CartOwnerSignup />} />
+          <Route path="/login-test" element={<LoginTest />} />
           <Route path="/customer" element={<MenuScreen />} />
           <Route path="/order" element={<MenuScreen />} />
           <Route path="/menu" element={<MenuScreen />} />
@@ -258,12 +270,42 @@ function AppContent() {
             } 
           />
           
+          {/* Cart Owner Routes */}
+          <Route 
+            path="/cart-owner" 
+            element={<CartOwnerDashboard />}
+          />
+          <Route 
+            path="/cart-owner/menu/:cartId" 
+            element={<CartMenuManagement />}
+          />
+          <Route 
+            path="/cart-owner/excel-upload/:cartId" 
+            element={<ExcelUpload />}
+          />
+          
+          {/* Cart Worker Routes */}
+          <Route 
+            path="/cart-worker" 
+            element={
+              <ProtectedRoute>
+                <CartWorkerDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          
           {/* Default redirect for authenticated users */}
           <Route 
             path="/*" 
             element={
               user ? (
-                <Navigate to={`/${user.role === 'super_admin' ? 'superadmin' : user.role === 'admin' || user.role === 'manager' ? 'admin' : 'chef'}`} replace />
+                <Navigate to={`/${
+                  user.role === 'super_admin' ? 'superadmin' : 
+                  user.role === 'admin' || user.role === 'manager' ? 'admin' : 
+                  user.role === 'cart_owner' ? 'cart-owner' :
+                  user.role === 'cart_worker' ? 'cart-worker' :
+                  'chef'
+                }`} replace />
               ) : (
                 <Navigate to="/" replace />
               )

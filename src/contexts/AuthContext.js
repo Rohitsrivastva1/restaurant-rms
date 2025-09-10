@@ -36,17 +36,24 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       
       const response = await authAPI.login(credentials);
-      const { token: newToken, user: userData } = response.data;
+      const { success, token: newToken, user: userData } = response.data;
       
-      // Store in localStorage
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Update state
-      setToken(newToken);
-      setUser(userData);
-      
-      return { success: true, user: userData };
+      if (success) {
+        // Store in localStorage
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Update state
+        setToken(newToken);
+        setUser(userData);
+        
+        console.log('AuthContext: User logged in successfully', userData); // Debug log
+        console.log('AuthContext: Token set', newToken); // Debug log
+        
+        return { success: true, user: userData };
+      } else {
+        return { success: false, error: 'Login failed' };
+      }
     } catch (error) {
       const errorMessage = apiUtils.handleError(error);
       setError(errorMessage);
@@ -88,17 +95,51 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       
       const response = await authAPI.registerSuperAdmin(userData);
-      const { token: newToken, user: newUser } = response.data;
+      const { success, token: newToken, user: newUser } = response.data;
       
-      // Store in localStorage
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      if (success) {
+        // Store in localStorage
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(newUser));
+        
+        // Update state
+        setToken(newToken);
+        setUser(newUser);
+        
+        return { success: true, user: newUser };
+      } else {
+        return { success: false, error: 'Registration failed' };
+      }
+    } catch (error) {
+      const errorMessage = apiUtils.handleError(error);
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const registerCartOwner = async (userData) => {
+    try {
+      setError('');
+      setLoading(true);
       
-      // Update state
-      setToken(newToken);
-      setUser(newUser);
+      const response = await authAPI.registerCartOwner(userData);
+      const { success, token: newToken, user: newUser } = response.data;
       
-      return { success: true, user: newUser };
+      if (success) {
+        // Store in localStorage
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(newUser));
+        
+        // Update state
+        setToken(newToken);
+        setUser(newUser);
+        
+        return { success: true, user: newUser };
+      } else {
+        return { success: false, error: 'Registration failed' };
+      }
     } catch (error) {
       const errorMessage = apiUtils.handleError(error);
       setError(errorMessage);
@@ -152,7 +193,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAuthenticated = () => {
-    return !!token && !!user;
+    const authenticated = !!token && !!user;
+    console.log('isAuthenticated check:', { token: !!token, user: !!user, authenticated }); // Debug log
+    return authenticated;
   };
 
   const hasRole = (role) => {
@@ -171,6 +214,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     registerSuperAdmin,
+    registerCartOwner,
     registerRestaurant,
     logout,
     updateUser,

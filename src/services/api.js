@@ -44,6 +44,7 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   registerSuperAdmin: (userData) => api.post('/auth/register-superadmin', userData),
+  registerCartOwner: (userData) => api.post('/auth/register-cart-owner', userData),
   registerRestaurant: (restaurantData) => api.post('/auth/register-restaurant', restaurantData),
   logout: () => api.post('/auth/logout'),
   refreshToken: () => api.post('/auth/refresh'),
