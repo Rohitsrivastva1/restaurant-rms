@@ -56,6 +56,7 @@ import ChefProfile from './components/Chef/ChefProfile';
 
 // Customer Components
 import MenuScreen from './components/Customer/MenuScreen';
+import { CafeSample, CafeSampleIndex } from './components/CafeSample/CafeSample';
 
 // Cart Owner Components
 import CartOwnerDashboard from './components/CartOwner/Dashboard';
@@ -93,6 +94,9 @@ function AppContent() {
           <Route path="/customer" element={<MenuScreen />} />
           <Route path="/order" element={<MenuScreen />} />
           <Route path="/menu" element={<MenuScreen />} />
+          <Route path="/samples" element={<CafeSampleIndex />} />
+          <Route path="/samples/:variant" element={<CafeSample />} />
+          <Route path="/samples/:variant/book" element={<CafeSample />} />
           
           {/* SuperAdmin Routes */}
           <Route 
