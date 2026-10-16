@@ -1,351 +1,121 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Heart, 
-  Target, 
-  Users, 
-  Zap, 
-  Globe, 
-  Award,
-  ArrowRight,
-  CheckCircle
-} from 'lucide-react';
+import Shell, { Photo, Placeholder } from '../Marketing/Shell';
+import { TRIAL, VALUES } from '../Marketing/content';
 
-const AboutPage = () => {
+const WHY = [
+  ['i', 'Made in India', 'Built for food businesses and the way they actually serve. ', true],
+  ['ii', 'Easy to use', 'No technical expertise required. Get started in minutes, not hours.', false],
+  ['iii', 'Affordable', 'Pricing that works for small businesses, not only large groups.', false],
+  ['iv', 'Support', 'Real people who understand service and are here to help.', false],
+  ['v', 'Reliable', 'Secure, cloud-based infrastructure. No uptime percentage is claimed here.', false],
+  ['vi', 'Passionate', 'We care about the service your guests remember.', false],
+];
+
+export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-blue-900">Servya</h1>
-              </div>
-            </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <Link to="/" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Home</Link>
-                <Link to="/about" className="text-blue-600 px-3 py-2 rounded-md text-sm font-medium">About</Link>
-                <Link to="/pricing" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Pricing</Link>
-                <Link to="/contact" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Contact</Link>
-                <Link to="/login" className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800">Login</Link>
-              </div>
-            </div>
+    <Shell active="about" title="About">
+      <header className="mk-pagehead">
+        <img src="/images/hospitality/kitchen-pass.png" alt="AI-generated sample image of a chef plating" />
+        <div className="mk-scrim">
+          <div className="mk-wrap">
+            <div className="mk-kicker">About</div>
+            <h1>Technology that serves <em>the service.</em></h1>
+            <p className="mk-lead">Tools for the menu, the queue and the numbers — so the room can stay focused on the guest.</p>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              About Servya
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're on a mission to empower every food entrepreneur with the technology 
-              they need to compete, grow, and win hearts.
-            </p>
+      <section className="mk-section">
+        <div className="mk-wrap mk-split">
+          <div>
+            <h2>Our story</h2>
+            <p className="mk-lead">Servya started from a simple observation: people running food businesses were stuck with systems that did not match the way they serve. They needed something they could set up quickly, not a toolkit built only for a large chain.</p>
+            <p className="mk-lead">The product is QR menus, order notifications and insights. We do not publish venue counts, order totals or sales lifts until those numbers are verified.</p>
+          </div>
+          <Placeholder tag="Our impact · to verify">
+            {/* TODO(verify): venues, orders, sales change, satisfaction */}
+            {['Venues', 'Orders', 'Sales change', 'Satisfaction'].map((label) => (
+              <p key={label} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #8C7A62', padding: '12px 0', fontSize: 18 }}>
+                <span>{label}</span><strong>—</strong>
+              </p>
+            ))}
+          </Placeholder>
+        </div>
+      </section>
+
+      <section className="mk-section" style={{ paddingTop: 0 }}>
+        <div className="mk-wrap mk-story-photo">
+          <Photo src="/images/hospitality/hero-steak.png" alt="a dining room" />
+          <Photo src="/images/hospitality/bar-cocktail.png" alt="a cocktail pour" />
+          <Photo src="/images/hospitality/hotel-breakfast.png" alt="a breakfast tray" />
+        </div>
+      </section>
+
+      <section className="mk-section" style={{ background: '#120D0A' }}>
+        <div className="mk-wrap" style={{ display: 'grid', gap: 18 }}>
+          <div className="mk-split">
+            <article className="mk-info"><h2>Mission</h2><p className="mk-lead">To simplify restaurant management through smart, affordable and user-friendly tools, so people can stay with the food and the guest.</p></article>
+            <article className="mk-info"><h2>Vision</h2><p className="mk-lead">A world where food businesses of every size can use technology that fits the way they serve.</p></article>
           </div>
         </div>
       </section>
 
-      {/* Our Story */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Our Story
-              </h2>
-              <div className="space-y-4 text-gray-600">
-                <p>
-                  Servya was born from a simple observation: food entrepreneurs, from street cart vendors 
-                  to restaurant owners, were struggling with outdated systems that didn't meet their needs. 
-                  They deserved better technology, not complex solutions designed for large corporations.
-                </p>
-                <p>
-                  We started with a vision to democratize restaurant technology, making it accessible, 
-                  affordable, and easy to use for every foodpreneur, regardless of their size or technical expertise.
-                </p>
-                <p>
-                  Today, we're proud to serve thousands of food businesses across India, helping them 
-                  streamline operations, increase sales, and focus on what they do best – creating 
-                  amazing food experiences.
-                </p>
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-2xl p-8">
-              <div className="bg-white rounded-xl p-6 shadow-lg">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Our Impact</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                    <span className="text-gray-700">1000+ food businesses empowered</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                    <span className="text-gray-700">50,000+ orders processed monthly</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                    <span className="text-gray-700">Average 30% increase in sales</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                    <span className="text-gray-700">99.9% customer satisfaction</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <section className="mk-section">
+        <div className="mk-wrap">
+          <div className="mk-head"><h2>Core values</h2><p className="mk-lead">The principles already published on this site, with two titles still to confirm.</p></div>
+          <div className="mk-values">
+            {VALUES.map((value) => (
+              <article key={value.title}><h3>{value.title}</h3><p>{value.body}</p></article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Mission & Vision */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="bg-white rounded-xl p-8 shadow-lg">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                <Target className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
-              <p className="text-gray-600">
-                To simplify restaurant management through smart, affordable, and user-friendly tools 
-                that enable every food entrepreneur to focus on what they love – creating amazing 
-                food experiences for their customers.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-xl p-8 shadow-lg">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                <Heart className="h-8 w-8 text-orange-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h3>
-              <p className="text-gray-600">
-                A world where every food entrepreneur, from street cart vendors to restaurant owners, 
-                has access to the technology they need to compete, grow, and build successful businesses 
-                that serve their communities.
-              </p>
-            </div>
+      <section className="mk-section" style={{ background: '#120D0A' }}>
+        <div className="mk-wrap">
+          <div className="mk-head"><h2>Meet our team</h2></div>
+          <div className="mk-team">
+            {[1, 2, 3].map((n) => (
+              <Placeholder key={n} tag="Sample team card">
+                {/* TODO(verify): no real names or bios until confirmed */}
+                <h3 style={{ marginTop: 12 }}>Name Surname</h3>
+                <p>Role to be confirmed. No biography is shown.</p>
+              </Placeholder>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Core Values */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Our Core Values
-            </h2>
-            <p className="text-xl text-gray-600">
-              The principles that guide everything we do
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-8 w-8 text-orange-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Empowerment</h3>
-              <p className="text-gray-600 text-sm">
-                We believe in giving every foodpreneur the tools and confidence to succeed.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Simplicity</h3>
-              <p className="text-gray-600 text-sm">
-                We make complex technology simple and accessible for everyone.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Trust</h3>
-              <p className="text-gray-600 text-sm">
-                We build reliable, secure solutions that you can depend on.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Community</h3>
-              <p className="text-gray-600 text-sm">
-                We foster a supportive community where everyone grows together.
-              </p>
-            </div>
+      <section className="mk-section">
+        <div className="mk-wrap">
+          <div className="mk-head"><h2>Why choose Servya</h2></div>
+          <div className="mk-why">
+            {WHY.map(([num, title, body, confirm]) => (
+              <article key={num}>
+                <div className="mk-roman">{num}</div>
+                <h3>{title}{confirm && <span className="mk-confirm">Confirm</span>}</h3>
+                <p>{body}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Meet Our Team
-            </h2>
-            <p className="text-xl text-gray-600">
-              Passionate people working to empower food entrepreneurs
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl p-8 shadow-lg text-center">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-blue-600">R</span>
+      <section className="mk-section" style={{ paddingTop: 0 }}>
+        <div className="mk-wrap">
+          <div className="mk-band">
+            <img src="/images/hospitality/hero-steak-alt.png" alt="AI-generated sample image of a plated steak" />
+            <div className="mk-scrim">
+              <h2>Come see the menu <em>your guests will.</em></h2>
+              <div className="mk-row">
+                <Link className="mk-gold" to={TRIAL}>Start free trial</Link>
+                <Link className="mk-ghost" to="/contact">Book a demo</Link>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Rajesh Kumar</h3>
-              <p className="text-orange-500 mb-4">Founder & CEO</p>
-              <p className="text-gray-600 text-sm">
-                Passionate about empowering small businesses with technology. 
-                Former restaurant owner with 10+ years in the food industry.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-xl p-8 shadow-lg text-center">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-green-600">P</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Priya Sharma</h3>
-              <p className="text-orange-500 mb-4">CTO</p>
-              <p className="text-gray-600 text-sm">
-                Technology enthusiast focused on building scalable, user-friendly solutions. 
-                Expert in mobile and web development.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-xl p-8 shadow-lg text-center">
-              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-purple-600">A</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Amit Patel</h3>
-              <p className="text-orange-500 mb-4">Head of Customer Success</p>
-              <p className="text-gray-600 text-sm">
-                Dedicated to ensuring every customer succeeds with our platform. 
-                Former food truck owner who understands the challenges.
-              </p>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Why Choose Us */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Servya?
-            </h2>
-            <p className="text-xl text-gray-600">
-              We're different because we understand your business
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Globe className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Made in India</h3>
-              <p className="text-gray-600 text-sm">
-                Built specifically for Indian food businesses and their unique needs.
-              </p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-8 w-8 text-orange-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Easy to Use</h3>
-              <p className="text-gray-600 text-sm">
-                No technical expertise required. Get started in minutes, not hours.
-              </p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Affordable</h3>
-              <p className="text-gray-600 text-sm">
-                Pricing that works for small businesses, not just large corporations.
-              </p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Support</h3>
-              <p className="text-gray-600 text-sm">
-                Real people who understand your business and are here to help.
-              </p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-yellow-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Reliable</h3>
-              <p className="text-gray-600 text-sm">
-                99.9% uptime with secure, cloud-based infrastructure.
-              </p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Passionate</h3>
-              <p className="text-gray-600 text-sm">
-                We genuinely care about your success and growth.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-blue-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Join Our Community?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Be part of the movement that's transforming how food businesses operate.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              to="/register" 
-              className="bg-orange-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-600 transition-colors inline-flex items-center"
-            >
-              Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-            <Link 
-              to="/contact" 
-              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors"
-            >
-              Contact Us
-            </Link>
-          </div>
-        </div>
-      </section>
-    </div>
+    </Shell>
   );
-};
-
-export default AboutPage;
+}

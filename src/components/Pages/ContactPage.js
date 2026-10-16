@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Clock, 
-  Send,
-  MessageCircle,
-  ArrowRight
-} from 'lucide-react';
+import Shell, { FAQ, Placeholder } from '../Marketing/Shell';
+import { CONTACT_FAQ, TRIAL } from '../Marketing/content';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -16,129 +9,77 @@ const ContactPage = () => {
     email: '',
     phone: '',
     business: '',
-    message: ''
+    message: '',
   });
+  const [errors, setErrors] = useState({});
+  const [sent, setSent] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleChange = (event) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
+    setErrors((current) => ({ ...current, [event.target.name]: undefined }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle form submission here
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const next = {};
+    if (!formData.name.trim()) next.name = 'Enter your full name.';
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      next.email = 'Enter a valid email address.';
+    }
+    if (!formData.business) next.business = 'Select your business type.';
+    setErrors(next);
+    if (Object.keys(next).length) return;
     console.log('Form submitted:', formData);
-    alert('Thank you for your message! We\'ll get back to you soon.');
+    setSent(true);
   };
+
+  const field = (name) => `field${errors[name] ? ' invalid' : ''}`;
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-blue-900">Servya</h1>
-              </div>
-            </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <Link to="/" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Home</Link>
-                <Link to="/about" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">About</Link>
-                <Link to="/pricing" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Pricing</Link>
-                <Link to="/contact" className="text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Contact</Link>
-                <Link to="/login" className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800">Login</Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Get in Touch
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Have questions? Need help? We're here to support you every step of the way. 
-              Reach out to us and we'll get back to you within 24 hours.
+    <Shell active="contact" title="Contact">
+      <header className="mk-pagehead">
+        <img src="/images/hospitality/bar-pour.png" alt="AI-generated sample image of a drink being poured" />
+        <div className="mk-scrim">
+          <div className="mk-wrap">
+            <div className="mk-kicker">Contact</div>
+            <h1>Let’s talk about <em>your venue.</em></h1>
+            <p className="mk-lead">
+              Questions, a demo, or a plan for more than one site.
+              <span className="mk-confirm">Reply within 24 hours · confirm</span>
             </p>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* Contact Information */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">Send us a Message</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Your full name"
-                    />
+      <section className="mk-section">
+        <div className="mk-wrap mk-contact">
+          <div>
+            <h2>Send a message</h2>
+            {sent ? (
+              <div className="mk-status" role="status" style={{ marginTop: 18 }}>
+                <h3>Thank you for your message.</h3>
+                <p className="mk-lead">We’ll get back to you soon. The current site says that is within 24 hours.</p>
+              </div>
+            ) : (
+              <form className="mk-form" style={{ marginTop: 18 }} onSubmit={handleSubmit} noValidate>
+                <div className="mk-grid-2">
+                  <div className={field('name')}>
+                    <label htmlFor="name">Full name *</label>
+                    <input id="name" name="name" value={formData.name} onChange={handleChange} autoComplete="name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'name-error' : undefined} />
+                    {errors.name && <p className="err" id="name-error">{errors.name}</p>}
+                  </div>
+                  <div className={field('email')}>
+                    <label htmlFor="email">Email address *</label>
+                    <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} autoComplete="email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-error' : undefined} />
+                    {errors.email && <p className="err" id="email-error">{errors.email}</p>}
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="your@email.com"
-                    />
+                    <label htmlFor="phone">Phone number</label>
+                    <input id="phone" name="phone" value={formData.phone} onChange={handleChange} autoComplete="tel" />
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="+91 98765 43210"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="business" className="block text-sm font-medium text-gray-700 mb-2">
-                      Business Type
-                    </label>
-                    <select
-                      id="business"
-                      name="business"
-                      value={formData.business}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
+                  <div className={field('business')}>
+                    <label htmlFor="business">Business type *</label>
+                    <select id="business" name="business" value={formData.business} onChange={handleChange} aria-invalid={Boolean(errors.business)} aria-describedby={errors.business ? 'business-error' : undefined}>
                       <option value="">Select your business type</option>
                       <option value="street-cart">Street Cart</option>
                       <option value="food-truck">Food Truck</option>
@@ -147,206 +88,57 @@ const ContactPage = () => {
                       <option value="catering">Catering</option>
                       <option value="other">Other</option>
                     </select>
+                    {errors.business && <p className="err" id="business-error">{errors.business}</p>}
                   </div>
                 </div>
-                
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    rows={6}
-                    value={formData.message}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Tell us how we can help you..."
-                  />
+                  <label htmlFor="message">Message</label>
+                  <textarea id="message" name="message" rows={5} value={formData.message} onChange={handleChange} />
                 </div>
-                
-                <button
-                  type="submit"
-                  className="w-full bg-blue-900 text-white py-4 rounded-lg text-lg font-semibold hover:bg-blue-800 transition-colors flex items-center justify-center"
-                >
-                  <Send className="mr-2 h-5 w-5" />
-                  Send Message
-                </button>
+                <button className="mk-gold" type="submit" style={{ width: 'fit-content', paddingInline: 22 }}>Send message</button>
               </form>
-            </div>
-
-            {/* Contact Information */}
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">Contact Information</h2>
-              
-              <div className="space-y-8">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <Phone className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Phone</h3>
-                    <p className="text-gray-600">+91 98765 43210</p>
-                    <p className="text-sm text-gray-500">Mon-Fri 9AM-6PM IST</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="bg-orange-100 p-3 rounded-lg">
-                    <Mail className="h-6 w-6 text-orange-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Email</h3>
-                    <p className="text-gray-600">hello@servya.com</p>
-                    <p className="text-sm text-gray-500">We respond within 24 hours</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="bg-green-100 p-3 rounded-lg">
-                    <MapPin className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Office</h3>
-                    <p className="text-gray-600">
-                      Servya Technologies Pvt Ltd<br />
-                      Tech Park, Sector 5<br />
-                      Gurgaon, Haryana 122001
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="bg-purple-100 p-3 rounded-lg">
-                    <Clock className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Business Hours</h3>
-                    <div className="text-gray-600 space-y-1">
-                      <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
-                      <p>Saturday: 10:00 AM - 4:00 PM</p>
-                      <p>Sunday: Closed</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="mt-12 bg-gray-50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                <div className="space-y-3">
-                  <Link 
-                    to="/demo" 
-                    className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-                  >
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Book a Demo
-                  </Link>
-                  <Link 
-                    to="/support" 
-                    className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-                  >
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Help Center
-                  </Link>
-                  <Link 
-                    to="/pricing" 
-                    className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-                  >
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    View Pricing
-                  </Link>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
+          <aside className="mk-side">
+            <Placeholder tag="Contact details · to verify">
+              {/* TODO(verify): phone, email and address are not published */}
+              <p style={{ marginTop: 12 }}>Phone</p>
+              <div className="mk-dashline">—</div>
+              <p style={{ marginTop: 12 }}>Email</p>
+              <div className="mk-dashline">—</div>
+              <p style={{ marginTop: 12 }}>Address</p>
+              <div className="mk-dashline">—</div>
+            </Placeholder>
+            <article className="mk-info">
+              <h3>Hours <span className="mk-confirm">Confirm</span></h3>
+              {/* TODO(verify): support hours */}
+              <p className="mk-lead" style={{ fontSize: 15 }}>Monday–Friday 9:00–18:00</p>
+              <p className="mk-lead" style={{ fontSize: 15 }}>Saturday 10:00–16:00</p>
+              <p className="mk-lead" style={{ fontSize: 15 }}>Sunday closed</p>
+            </article>
+            <Link className="mk-gold" to="/contact">Book a demo</Link>
+            <Link className="mk-ghost" to="/contact">Help center</Link>
+          </aside>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-xl text-gray-600">
-              Quick answers to common questions
-            </p>
-          </div>
-          
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                How quickly can I get started with Servya?
-              </h3>
-              <p className="text-gray-600">
-                You can set up your account and create your first QR menu in under 10 minutes. 
-                Our onboarding process is designed to be quick and easy.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Do I need any technical knowledge to use Servya?
-              </h3>
-              <p className="text-gray-600">
-                Not at all! Servya is designed to be user-friendly for everyone. 
-                If you can use a smartphone, you can use Servya.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What kind of support do you provide?
-              </h3>
-              <p className="text-gray-600">
-                We provide email support, phone support during business hours, 
-                and a comprehensive help center with video tutorials and guides.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Can I cancel my subscription anytime?
-              </h3>
-              <p className="text-gray-600">
-                Yes, you can cancel your subscription at any time. 
-                There are no cancellation fees or long-term commitments.
-              </p>
-            </div>
-          </div>
+      <section className="mk-section" style={{ background: '#120D0A' }}>
+        <div className="mk-wrap">
+          <div className="mk-head"><h2>Questions</h2></div>
+          <FAQ items={CONTACT_FAQ} />
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-blue-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Join thousands of food entrepreneurs who are already growing with Servya.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              to="/register" 
-              className="bg-orange-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-600 transition-colors inline-flex items-center"
-            >
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-            <Link 
-              to="/demo" 
-              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors"
-            >
-              Book a Demo
-            </Link>
+      <section className="mk-section">
+        <div className="mk-wrap">
+          <h2>Start with the menu.</h2>
+          <div className="mk-row">
+            <Link className="mk-gold" to={TRIAL}>Start free trial</Link>
+            <Link className="mk-ghost" to="/pricing">See plans</Link>
           </div>
         </div>
       </section>
-    </div>
+    </Shell>
   );
 };
 
