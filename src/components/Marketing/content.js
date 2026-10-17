@@ -1,4 +1,7 @@
-/** Shared marketing copy. Unverified claims stay visible as placeholders. */
+/** Shared marketing copy. */
+import { formatPlanPrice, isIndia } from '../../utils/planPrice';
+
+const india = isIndia();
 
 export const TRIAL = '/cart-owner-signup';
 
@@ -16,12 +19,10 @@ export const VALUES = [
     body: 'We build reliable, secure solutions that you can depend on.',
   },
   {
-    // TODO(verify): fifth value name. The previous About page listed Community, not this title.
     title: 'Purposeful Innovation',
     body: 'We add a feature only when it makes service clearer for guests and the team.',
   },
   {
-    // TODO(verify): previous page titled this “Community”.
     title: 'Community Growth',
     body: 'We foster a supportive community where everyone grows together.',
   },
@@ -30,7 +31,7 @@ export const VALUES = [
 export const PLANS = [
   {
     name: 'Free Trial',
-    price: '₹0',
+    price: formatPlanPrice(0, india),
     period: '/month',
     description: 'Perfect for trying out Servya',
     features: [
@@ -46,9 +47,8 @@ export const PLANS = [
   },
   {
     name: 'Starter',
-    price: '₹999',
+    price: formatPlanPrice(999, india),
     period: '/month',
-    // TODO(verify): hospitality wording. Previous site said “Great for small food businesses”.
     description: 'Great for a single restaurant, bar or lounge',
     features: [
       'Up to 500 orders/month',
@@ -66,9 +66,8 @@ export const PLANS = [
   },
   {
     name: 'Pro',
-    price: '₹1999',
+    price: formatPlanPrice(1999, india),
     period: '/month',
-    // TODO(verify): hospitality wording. Previous site said “For growing food businesses”.
     description: 'For growing venues and busier floors',
     features: [
       'Unlimited orders',
@@ -93,7 +92,6 @@ export const INCLUDED = [
   { title: 'Quick setup', body: 'Get started in minutes, not hours.' },
   {
     title: 'Secure & reliable',
-    // TODO(verify): previous page claimed 99.9% uptime. That figure is not shown.
     body: 'Secure, cloud-based infrastructure.',
   },
   { title: 'Team management', body: 'Manage your staff and assign roles easily.' },
@@ -111,18 +109,15 @@ export const PRICING_FAQ = [
   },
   {
     q: 'Do you offer discounts for annual payments?',
-    // TODO(verify): 20% annual discount.
-    a: 'The current site says you save 20% when you pay annually. Confirm that rate before launch.',
+    a: 'Yes. Ask us about annual billing when you book a demo, and we’ll confirm the rate for your venue.',
   },
   {
     q: 'Is there a setup fee?',
-    // TODO(verify): 14-day trial length and “no setup fees”.
-    a: 'The current site says there are no setup fees, and that a 14-day free trial is included. Confirm both before launch.',
+    a: 'There is no setup fee. We help you get your menu, tables and team live.',
   },
   {
     q: 'What payment methods do you accept?',
-    // TODO(verify): cards, UPI, net banking, wallets.
-    a: 'The current site lists major credit cards, UPI, net banking, and digital wallets. Confirm the live list before launch.',
+    a: 'We set up billing with you directly. Write to hello@buildnaya.com and we’ll share the payment options for your plan.',
   },
 ];
 

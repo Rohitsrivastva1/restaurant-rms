@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './owner.css';
 import { 
   ArrowLeft, 
   Edit, 
@@ -101,7 +102,7 @@ const CartManagement = ({ cartId }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="ro">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -130,7 +131,7 @@ const CartManagement = ({ cartId }) => {
                 QR Code
               </button>
               <button
-                onClick={() => window.location.href = `/cart-owner/carts/${cartId}/edit`}
+                onClick={() => window.location.href = `/restra-owner/carts/${cartId}/edit`}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
               >
                 <Edit className="h-4 w-4 mr-2" />
@@ -302,7 +303,7 @@ const CartManagement = ({ cartId }) => {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900">Menu Management</h3>
                 <button
-                  onClick={() => window.location.href = `/cart-owner/carts/${cartId}/menu`}
+                  onClick={() => window.location.href = `/restra-owner/carts/${cartId}/menu`}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -320,7 +321,7 @@ const CartManagement = ({ cartId }) => {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900">Worker Management</h3>
                 <button
-                  onClick={() => window.location.href = `/cart-owner/carts/${cartId}/workers`}
+                  onClick={() => window.location.href = `/restra-owner/carts/${cartId}/workers`}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -338,7 +339,7 @@ const CartManagement = ({ cartId }) => {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
                 <button
-                  onClick={() => window.location.href = `/cart-owner/carts/${cartId}/analytics`}
+                  onClick={() => window.location.href = `/restra-owner/carts/${cartId}/analytics`}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />

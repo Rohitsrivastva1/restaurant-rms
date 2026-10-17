@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './owner.css';
 import { 
   ArrowLeft, 
   Save, 
@@ -115,7 +116,7 @@ const CartForm = ({ cartId, isEdit = false }) => {
       }
       
       // Redirect to cart management or dashboard
-      window.location.href = isEdit ? `/cart-owner/carts/${cartId}` : '/cart-owner/dashboard';
+      window.location.href = isEdit ? `/restra-owner/carts/${cartId}` : '/restra-owner';
     } catch (error) {
       console.error('Error saving cart:', error);
       setErrors({ submit: 'Failed to save cart. Please try again.' });
@@ -141,7 +142,7 @@ const CartForm = ({ cartId, isEdit = false }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="ro">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

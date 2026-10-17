@@ -1,23 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Upload, 
-  Download,
-  Search,
-  Filter,
-  ChefHat,
-  Tag,
-  DollarSign,
-  Clock,
-  Star,
-  Image as ImageIcon,
-  Save,
-  X
-} from 'lucide-react';
+import { Plus, Edit, Trash2, Upload } from 'lucide-react';
+import OwnerChrome from './OwnerChrome';
+import VenueNav from './VenueNav';
 
 const MenuManagement = () => {
   const { cartId } = useParams();
@@ -247,663 +232,340 @@ const MenuManagement = () => {
   };
 
   const filteredItems = menuItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || item.categoryId === parseInt(filterCategory);
+    const haystack = `${item.name || ''} ${item.description || ''}`.toLowerCase();
+    const matchesSearch = haystack.includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || item.categoryId === parseInt(filterCategory, 10);
     return matchesSearch && matchesCategory;
   });
 
+  const openCreate = () => {
+    if (activeTab === 'items') setShowItemModal(true);
+    else setShowCategoryModal(true);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading menu...</p>
-        </div>
+      <div className="ro">
+        <div className="ro-loading">Loading the menu…</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <ChefHat className="h-8 w-8 text-orange-600" />
-              <h1 className="ml-2 text-xl font-semibold text-gray-900">Menu Management</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {/* TODO: Export menu */}}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-              >
-                <Download className="h-4 w-4" />
-                <span>Export</span>
-              </button>
-              <button
-                onClick={() => navigate(`/cart-owner/excel-upload/${cartId}`)}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-              >
-                <Upload className="h-4 w-4" />
-                <span>Import Excel</span>
-              </button>
-            </div>
-          </div>
+    <OwnerChrome
+      kicker="Menu"
+      title="Dishes and categories."
+      lead="What guests see when they order from this venue."
+      nav={(
+        <button className="ro-ghost" type="button" onClick={() => navigate('/restra-owner')}>
+          Venues
+        </button>
+      )}
+      actions={(
+        <div className="ro-actions-row">
+          <button className="ro-ghost" type="button" onClick={() => navigate(`/restra-owner/excel-upload/${cartId}`)}>
+            <Upload size={16} />
+            Import
+          </button>
+          <button className="ro-gold" type="button" onClick={openCreate}>
+            <Plus size={16} />
+            Add {activeTab === 'items' ? 'dish' : 'category'}
+          </button>
         </div>
+      )}
+    >
+      <VenueNav cartId={cartId} />
+      <div className="ro-tabs">
+        <button type="button" className={activeTab === 'items' ? 'on' : ''} onClick={() => setActiveTab('items')}>
+          Dishes ({menuItems.length})
+        </button>
+        <button type="button" className={activeTab === 'categories' ? 'on' : ''} onClick={() => setActiveTab('categories')}>
+          Categories ({categories.length})
+        </button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tabs */}
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('items')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'items'
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Menu Items ({menuItems.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('categories')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'categories'
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Categories ({categories.length})
-              </button>
-            </nav>
-          </div>
-        </div>
-
-        {/* Search and Filter */}
-        <div className="bg-white rounded-lg shadow mb-6 p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search menu items..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              >
-                <option value="all">All Categories</option>
-                {categories.map(category => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={() => {
-                if (activeTab === 'items') {
-                  setShowItemModal(true);
-                } else {
-                  setShowCategoryModal(true);
-                }
-              }}
-              className="flex items-center space-x-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add {activeTab === 'items' ? 'Item' : 'Category'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-
-        {/* Content */}
-        {activeTab === 'items' ? (
-          <MenuItemsList 
-            items={filteredItems}
-            categories={categories}
-            onEdit={(item) => {
-              setEditingItem(item);
-              setItemForm({
-                name: item.name,
-                description: item.description,
-                price: item.price.toString(),
-                categoryId: item.categoryId?.toString() || '',
-                imageUrl: item.imageUrl || '',
-                isAvailable: item.isAvailable,
-                isVegetarian: item.isVegetarian,
-                isSpicy: item.isSpicy,
-                preparationTime: item.preparationTime?.toString() || '',
-                sortOrder: item.sortOrder?.toString() || '0'
-              });
-              setShowItemModal(true);
-            }}
-            onDelete={handleDeleteItem}
-          />
-        ) : (
-          <CategoriesList 
-            categories={categories}
-            onEdit={(category) => {
-              setEditingCategory(category);
-              setCategoryForm({
-                name: category.name,
-                description: category.description || '',
-                sortOrder: category.sortOrder || 0,
-                isActive: category.isActive
-              });
-              setShowCategoryModal(true);
-            }}
-            onDelete={handleDeleteCategory}
-          />
-        )}
-
-        {/* Category Modal */}
-        {showCategoryModal && (
-          <CategoryModal
-            category={editingCategory}
-            form={categoryForm}
-            setForm={setCategoryForm}
-            onSubmit={handleCategorySubmit}
-            onClose={() => {
-              setShowCategoryModal(false);
-              setEditingCategory(null);
-              setCategoryForm({ name: '', description: '', sortOrder: 0, isActive: true });
-            }}
-          />
-        )}
-
-        {/* Item Modal */}
-        {showItemModal && (
-          <ItemModal
-            item={editingItem}
-            form={itemForm}
-            setForm={setItemForm}
-            categories={categories}
-            onSubmit={handleItemSubmit}
-            onClose={() => {
-              setShowItemModal(false);
-              setEditingItem(null);
-              setItemForm({
-                name: '', description: '', price: '', categoryId: '',
-                imageUrl: '', isAvailable: true, isVegetarian: false,
-                isSpicy: false, preparationTime: '', sortOrder: 0
-              });
-            }}
-          />
+      <div className="ro-bar">
+        <input
+          type="search"
+          placeholder={activeTab === 'items' ? 'Search dishes' : 'Search categories'}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          aria-label="Search the menu"
+        />
+        {activeTab === 'items' && (
+          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} aria-label="Filter by category">
+            <option value="all">All categories</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+          </select>
         )}
       </div>
-    </div>
+
+      {error && <p className="ro-error">{error}</p>}
+
+      {activeTab === 'items' ? (
+        <MenuItemsList
+          items={filteredItems}
+          categories={categories}
+          onEdit={(item) => {
+            setEditingItem(item);
+            setItemForm({
+              name: item.name,
+              description: item.description || '',
+              price: item.price.toString(),
+              categoryId: item.categoryId?.toString() || '',
+              imageUrl: item.imageUrl || '',
+              isAvailable: item.isAvailable,
+              isVegetarian: item.isVegetarian,
+              isSpicy: item.isSpicy,
+              preparationTime: item.preparationTime?.toString() || '',
+              sortOrder: item.sortOrder?.toString() || '0'
+            });
+            setShowItemModal(true);
+          }}
+          onDelete={handleDeleteItem}
+        />
+      ) : (
+        <CategoriesList
+          categories={categories}
+          onEdit={(category) => {
+            setEditingCategory(category);
+            setCategoryForm({
+              name: category.name,
+              description: category.description || '',
+              sortOrder: category.sortOrder || 0,
+              isActive: category.isActive
+            });
+            setShowCategoryModal(true);
+          }}
+          onDelete={handleDeleteCategory}
+        />
+      )}
+
+      {showCategoryModal && (
+        <CategoryModal
+          category={editingCategory}
+          form={categoryForm}
+          setForm={setCategoryForm}
+          onSubmit={handleCategorySubmit}
+          onClose={() => {
+            setShowCategoryModal(false);
+            setEditingCategory(null);
+            setCategoryForm({ name: '', description: '', sortOrder: 0, isActive: true });
+          }}
+        />
+      )}
+
+      {showItemModal && (
+        <ItemModal
+          item={editingItem}
+          form={itemForm}
+          setForm={setItemForm}
+          categories={categories}
+          onSubmit={handleItemSubmit}
+          onClose={() => {
+            setShowItemModal(false);
+            setEditingItem(null);
+            setItemForm({
+              name: '', description: '', price: '', categoryId: '',
+              imageUrl: '', isAvailable: true, isVegetarian: false,
+              isSpicy: false, preparationTime: '', sortOrder: 0
+            });
+          }}
+        />
+      )}
+    </OwnerChrome>
   );
 };
 
-// Menu Items List Component
 const MenuItemsList = ({ items, categories, onEdit, onDelete }) => {
-  const getCategoryName = (categoryId) => {
-    const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.name : 'Uncategorized';
-  };
+  const categoryName = (categoryId) => categories.find((cat) => cat.id === categoryId)?.name || 'Uncategorised';
 
   if (items.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-12 text-center">
-          <ChefHat className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No menu items found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Get started by adding your first menu item.
-          </p>
+      <section className="ro-list">
+        <h2>Dishes</h2>
+        <div className="ro-empty">
+          <h3>No dishes yet.</h3>
+          <p>Add the first dish guests can order.</p>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Menu Items</h2>
-      </div>
-      <div className="divide-y divide-gray-200">
-        {items.map((item) => (
-          <div key={item.id} className="px-6 py-4 hover:bg-gray-50">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3">
-                  <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {getCategoryName(item.categoryId)}
-                  </span>
-                  {!item.isAvailable && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                      Unavailable
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-sm text-gray-500">{item.description}</p>
-                <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                  <span className="flex items-center">
-                    <DollarSign className="h-4 w-4 mr-1" />
-                    ${item.price}
-                  </span>
-                  {item.preparationTime && (
-                    <span className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {item.preparationTime} min
-                    </span>
-                  )}
-                  {item.isVegetarian && (
-                    <span className="flex items-center text-green-600">
-                      <Tag className="h-4 w-4 mr-1" />
-                      Vegetarian
-                    </span>
-                  )}
-                  {item.isSpicy && (
-                    <span className="flex items-center text-red-600">
-                      🌶️ Spicy
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => onEdit(item)}
-                  className="p-2 text-gray-400 hover:text-gray-600"
-                  title="Edit Item"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => onDelete(item.id)}
-                  className="p-2 text-gray-400 hover:text-red-600"
-                  title="Delete Item"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+    <section className="ro-list">
+      <h2>Dishes</h2>
+      {items.map((item) => (
+        <article className="ro-row" key={item.id}>
+          <div>
+            <div className="ro-title">
+              <h3>{item.name}</h3>
+              <span className="ro-pill">{categoryName(item.categoryId)}</span>
+              {!item.isAvailable && <span className="ro-pill suspended">Unavailable</span>}
+            </div>
+            {item.description && <p>{item.description}</p>}
+            <div className="ro-meta">
+              <span className="ro-price">₹{Number(item.price).toLocaleString('en-IN')}</span>
+              {item.preparationTime ? <span>{item.preparationTime} min</span> : null}
+              {item.isVegetarian && <span>Vegetarian</span>}
+              {item.isSpicy && <span>Spicy</span>}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
+          <div className="ro-actions-row">
+            <button className="ro-icon" type="button" onClick={() => onEdit(item)} aria-label="Edit dish"><Edit size={16} /></button>
+            <button className="ro-icon danger" type="button" onClick={() => onDelete(item.id)} aria-label="Delete dish"><Trash2 size={16} /></button>
+          </div>
+        </article>
+      ))}
+    </section>
   );
 };
 
-// Categories List Component
 const CategoriesList = ({ categories, onEdit, onDelete }) => {
   if (categories.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-12 text-center">
-          <Tag className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No categories found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Get started by adding your first category.
-          </p>
+      <section className="ro-list">
+        <h2>Categories</h2>
+        <div className="ro-empty">
+          <h3>No categories yet.</h3>
+          <p>Group dishes so the menu is easy to scan.</p>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Categories</h2>
-      </div>
-      <div className="divide-y divide-gray-200">
-        {categories.map((category) => (
-          <div key={category.id} className="px-6 py-4 hover:bg-gray-50">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="text-lg font-medium text-gray-900">{category.name}</h3>
-                {category.description && (
-                  <p className="mt-1 text-sm text-gray-500">{category.description}</p>
-                )}
-                <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                  <span>Sort Order: {category.sortOrder}</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    category.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {category.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => onEdit(category)}
-                  className="p-2 text-gray-400 hover:text-gray-600"
-                  title="Edit Category"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => onDelete(category.id)}
-                  className="p-2 text-gray-400 hover:text-red-600"
-                  title="Delete Category"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+    <section className="ro-list">
+      <h2>Categories</h2>
+      {categories.map((category) => (
+        <article className="ro-row" key={category.id}>
+          <div>
+            <div className="ro-title">
+              <h3>{category.name}</h3>
+              <span className={`ro-pill ${category.isActive ? 'active' : 'suspended'}`}>
+                {category.isActive ? 'Active' : 'Inactive'}
+              </span>
             </div>
+            {category.description && <p>{category.description}</p>}
           </div>
-        ))}
-      </div>
-    </div>
+          <div className="ro-actions-row">
+            <button className="ro-icon" type="button" onClick={() => onEdit(category)} aria-label="Edit category"><Edit size={16} /></button>
+            <button className="ro-icon danger" type="button" onClick={() => onDelete(category.id)} aria-label="Delete category"><Trash2 size={16} /></button>
+          </div>
+        </article>
+      ))}
+    </section>
   );
 };
 
-// Category Modal Component
 const CategoryModal = ({ category, form, setForm, onSubmit, onClose }) => {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div className="mt-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              {category ? 'Edit Category' : 'Create Category'}
-            </h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Category Name *
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={form.name}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Enter category name"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={form.description}
-                onChange={handleInputChange}
-                rows={3}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Enter category description"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="sortOrder" className="block text-sm font-medium text-gray-700">
-                Sort Order
-              </label>
-              <input
-                type="number"
-                id="sortOrder"
-                name="sortOrder"
-                value={form.sortOrder}
-                onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                placeholder="0"
-              />
-            </div>
-            
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="isActive"
-                name="isActive"
-                checked={form.isActive}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-              />
-              <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">
-                Active
-              </label>
-            </div>
-            
-            <div className="flex justify-end space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700"
-              >
-                {category ? 'Update' : 'Create'}
-              </button>
-            </div>
-          </form>
+    <div className="ro-shade" onClick={onClose}>
+      <div className="ro-modal" role="dialog" aria-labelledby="category-title" onClick={(e) => e.stopPropagation()}>
+        <div className="ro-modal-head">
+          <h3 id="category-title">{category ? 'Edit category' : 'Add a category'}</h3>
+          <button className="ro-x" type="button" onClick={onClose} aria-label="Close">×</button>
         </div>
+        <form onSubmit={onSubmit}>
+          <div>
+            <label htmlFor="name">Name</label>
+            <input id="name" name="name" value={form.name} onChange={handleInputChange} required placeholder="Starters, mains, drinks" />
+          </div>
+          <div>
+            <label htmlFor="description">Description</label>
+            <textarea id="description" name="description" rows={3} value={form.description} onChange={handleInputChange} placeholder="Optional" />
+          </div>
+          <div>
+            <label htmlFor="sortOrder">Order on the menu</label>
+            <input id="sortOrder" name="sortOrder" type="number" value={form.sortOrder} onChange={handleInputChange} />
+          </div>
+          <label className="ro-check" htmlFor="isActive">
+            <input id="isActive" name="isActive" type="checkbox" checked={form.isActive} onChange={handleInputChange} />
+            Active
+          </label>
+          <div className="ro-actions">
+            <button className="ro-ghost" type="button" onClick={onClose}>Cancel</button>
+            <button className="ro-gold" type="submit">{category ? 'Save' : 'Add category'}</button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
-// Item Modal Component
 const ItemModal = ({ item, form, setForm, categories, onSubmit, onClose }) => {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-        <div className="mt-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              {item ? 'Edit Menu Item' : 'Create Menu Item'}
-            </h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Item Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={form.name}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="Enter item name"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                  Price *
-                </label>
-                <input
-                  type="number"
-                  id="price"
-                  name="price"
-                  value={form.price}
-                  onChange={handleInputChange}
-                  required
-                  step="0.01"
-                  min="0"
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={form.description}
-                onChange={handleInputChange}
-                rows={3}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Enter item description"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">
-                  Category
-                </label>
-                <select
-                  id="categoryId"
-                  name="categoryId"
-                  value={form.categoryId}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label htmlFor="preparationTime" className="block text-sm font-medium text-gray-700">
-                  Preparation Time (minutes)
-                </label>
-                <input
-                  type="number"
-                  id="preparationTime"
-                  name="preparationTime"
-                  value={form.preparationTime}
-                  onChange={handleInputChange}
-                  min="0"
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="0"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">
-                Image URL
-              </label>
-              <input
-                type="url"
-                id="imageUrl"
-                name="imageUrl"
-                value={form.imageUrl}
-                onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isAvailable"
-                  name="isAvailable"
-                  checked={form.isAvailable}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                />
-                <label htmlFor="isAvailable" className="ml-2 block text-sm text-gray-900">
-                  Available
-                </label>
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isVegetarian"
-                  name="isVegetarian"
-                  checked={form.isVegetarian}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                />
-                <label htmlFor="isVegetarian" className="ml-2 block text-sm text-gray-900">
-                  Vegetarian
-                </label>
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isSpicy"
-                  name="isSpicy"
-                  checked={form.isSpicy}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                />
-                <label htmlFor="isSpicy" className="ml-2 block text-sm text-gray-900">
-                  Spicy
-                </label>
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700"
-              >
-                {item ? 'Update' : 'Create'}
-              </button>
-            </div>
-          </form>
+    <div className="ro-shade" onClick={onClose}>
+      <div className="ro-modal" role="dialog" aria-labelledby="dish-title" onClick={(e) => e.stopPropagation()} style={{ width: 'min(640px, 100%)' }}>
+        <div className="ro-modal-head">
+          <h3 id="dish-title">{item ? 'Edit dish' : 'Add a dish'}</h3>
+          <button className="ro-x" type="button" onClick={onClose} aria-label="Close">×</button>
         </div>
+        <form onSubmit={onSubmit}>
+          <div className="ro-split two">
+            <div>
+              <label htmlFor="item-name">Name</label>
+              <input id="item-name" name="name" value={form.name} onChange={handleInputChange} required placeholder="What guests order" />
+            </div>
+            <div>
+              <label htmlFor="price">Price (₹)</label>
+              <input id="price" name="price" type="number" value={form.price} onChange={handleInputChange} required step="1" min="0" placeholder="0" />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="item-description">Description</label>
+            <textarea id="item-description" name="description" rows={3} value={form.description} onChange={handleInputChange} placeholder="How it is served" />
+          </div>
+          <div className="ro-split two">
+            <div>
+              <label htmlFor="categoryId">Category</label>
+              <select id="categoryId" name="categoryId" value={form.categoryId} onChange={handleInputChange}>
+                <option value="">No category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>{category.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="preparationTime">Minutes to prepare</label>
+              <input id="preparationTime" name="preparationTime" type="number" min="0" value={form.preparationTime} onChange={handleInputChange} />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="imageUrl">Image URL</label>
+            <input id="imageUrl" name="imageUrl" type="url" value={form.imageUrl} onChange={handleInputChange} placeholder="https://" />
+          </div>
+          <div className="ro-split two">
+            <label className="ro-check" htmlFor="isAvailable">
+              <input id="isAvailable" name="isAvailable" type="checkbox" checked={form.isAvailable} onChange={handleInputChange} />
+              Available
+            </label>
+            <label className="ro-check" htmlFor="isVegetarian">
+              <input id="isVegetarian" name="isVegetarian" type="checkbox" checked={form.isVegetarian} onChange={handleInputChange} />
+              Vegetarian
+            </label>
+            <label className="ro-check" htmlFor="isSpicy">
+              <input id="isSpicy" name="isSpicy" type="checkbox" checked={form.isSpicy} onChange={handleInputChange} />
+              Spicy
+            </label>
+          </div>
+          <div className="ro-actions">
+            <button className="ro-ghost" type="button" onClick={onClose}>Cancel</button>
+            <button className="ro-gold" type="submit">{item ? 'Save' : 'Add dish'}</button>
+          </div>
+        </form>
       </div>
     </div>
   );

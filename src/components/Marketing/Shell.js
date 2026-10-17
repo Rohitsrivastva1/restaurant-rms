@@ -1,29 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PLANS, TRIAL } from './content';
+import { PLANS } from './content';
+import Nav from '../Home/Nav';
+import '../Home/home.css';
 import './marketing.css';
-
-const LINKS = [
-  { to: '/', label: 'Home', id: 'home' },
-  { to: '/about', label: 'About', id: 'about' },
-  { to: '/pricing', label: 'Pricing', id: 'pricing' },
-  { to: '/contact', label: 'Contact', id: 'contact' },
-];
 
 export function Photo({ src, alt, className = '' }) {
   return (
     <div className={`mk-photo ${className}`}>
-      <img src={src} alt={`AI-generated sample image of ${alt}`} />
-      <span className="mk-ai">AI-generated sample images</span>
+      <img src={src} alt={alt} />
     </div>
   );
 }
 
-export function Placeholder({ tag = 'Sample', children }) {
+export function Placeholder({ tag, children }) {
   return (
     <div className="mk-placeholder">
-      {/* TODO(verify): replace this block before launch */}
-      <div className="mk-tag">{tag}</div>
+      {tag ? <div className="mk-tag">{tag}</div> : null}
       {children}
     </div>
   );
@@ -49,7 +42,7 @@ export function PricingCards({ compact = false }) {
         <article key={plan.name} className={`mk-plan${plan.hot ? ' hot' : ''}`}>
           {plan.hot && <div className="mk-badge">Most Popular</div>}
           <h3>{plan.name}</h3>
-          <p>{plan.description}{(plan.name !== 'Free Trial') && <span className="mk-confirm">Confirm</span>}</p>
+          <p>{plan.description}</p>
           <div className="mk-price">{plan.price}<small>{plan.period}</small></div>
           <ul>
             {(compact ? plan.features.slice(0, 4) : plan.features).map((feature) => (
@@ -59,89 +52,55 @@ export function PricingCards({ compact = false }) {
               <li key={feature} className="limit">{feature}</li>
             ))}
           </ul>
-          <Link className={plan.hot ? 'mk-gold' : 'mk-ghost'} to={TRIAL}>{plan.cta}</Link>
+          <Link className={plan.hot ? 'mk-gold' : 'mk-ghost'} to="/contact">{plan.cta}</Link>
         </article>
       ))}
     </div>
   );
 }
 
-export default function Shell({ active, title, children }) {
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
+export default function Shell({ title, children }) {
   useEffect(() => {
-    document.title = title ? `${title} · Servya` : 'Servya';
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    document.title = title || 'Servya';
   }, [title]);
 
   return (
     <div className="mk">
-      <a className="mk-skip" href="#main">Skip to content</a>
-      <div className="mk-strip">Sample content — AI-generated images and unverified details are marked</div>
-      <header className={`mk-nav${scrolled ? ' scrolled' : ''}`}>
-        <div className="mk-wrap mk-nav-row">
-          <Link className="mk-logo" to="/">Servya <span>◆</span></Link>
-          <nav className="mk-links" aria-label="Primary">
-            {LINKS.map((link) => (
-              <Link key={link.id} to={link.to} aria-current={active === link.id ? 'page' : undefined}>{link.label}</Link>
-            ))}
-            <Link to="/login">Login</Link>
-          </nav>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Link className="mk-gold mk-trial" to={TRIAL}>Start free trial</Link>
-            <button className="mk-menu-btn" type="button" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen((value) => !value)}>
-              {open ? '×' : '☰'}
-            </button>
-          </div>
-        </div>
-      </header>
-      <nav className={`mk-drawer${open ? ' open' : ''}`} aria-label="Mobile">
-        {LINKS.map((link) => (
-          <Link key={link.id} to={link.to} onClick={() => setOpen(false)}>{link.label}</Link>
-        ))}
-        <Link to="/login" onClick={() => setOpen(false)}>Login</Link>
-        <Link to={TRIAL} onClick={() => setOpen(false)}>Start free trial</Link>
-      </nav>
+      <Nav />
       <main id="main">{children}</main>
       <footer className="mk-foot">
         <div className="mk-wrap mk-foot-grid">
           <div>
             <Link className="mk-logo" to="/">Servya <span>◆</span></Link>
-            <p className="mk-lead" style={{ fontSize: 15 }}>QR menus, live orders and insights for restaurants, bars and hotels.</p>
-            <p className="mk-note">Images on these pages are AI-generated samples, not a real venue.</p>
+            <p className="mk-lead" style={{ fontSize: 15 }}>Restaurant management for venues that care about every detail.</p>
+            <p className="mk-note">QR table ordering, a kitchen board and clear reports for restaurants, cafes, bars and hotel dining rooms.</p>
+            <p className="mk-note">hello@buildnaya.com · support@buildnaya.com</p>
+            <p className="mk-note">BuildNaya, Sector 62, Noida 201308, India</p>
           </div>
           <div>
             <h3>Product</h3>
-            {/* TODO(verify): no Features page exists; this points at the tools section. */}
             <Link to="/#tools">Features</Link>
             <Link to="/pricing">Pricing</Link>
-            {/* TODO(verify): no demo page; Book a demo opens contact. */}
-            <Link to="/contact">Demo</Link>
+            <Link to="/contact">Book a demo</Link>
           </div>
           <div>
             <h3>Company</h3>
             <Link to="/about">About</Link>
             <Link to="/contact">Contact</Link>
-            <Link to="/samples">Cafe samples</Link>
-            {/* TODO(verify): no careers page. */}
-            <Link to="/contact">Careers</Link>
+            <Link to="/samples">Menu themes</Link>
           </div>
           <div>
             <h3>Legal</h3>
-            <Link to="/privacy">Privacy</Link>
-            <Link to="/terms">Terms</Link>
-            <Link to="/cookies">Cookie</Link>
+            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/terms">Terms of Service</Link>
+            <Link to="/cookies">Cookie Policy</Link>
           </div>
         </div>
-        <div className="mk-wrap mk-legal">© {new Date().getFullYear()} Servya. Sample marketing pages.</div>
+        <div className="mk-wrap mk-legal">© 2026 Servya, a BuildNaya product. All rights reserved.</div>
       </footer>
       <div className="mk-bar">
-        <Link className="mk-gold" to={TRIAL}>Start free trial</Link>
-        <Link className="mk-ghost" to="/contact">Book a demo</Link>
+        <Link className="mk-gold" to="/contact">Book a demo</Link>
+        <Link className="mk-ghost" to="/pricing">See plans</Link>
       </div>
       <div className="mk-pad" />
     </div>

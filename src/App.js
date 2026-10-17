@@ -62,9 +62,14 @@ import { CafeSample, CafeSampleIndex } from './components/CafeSample/CafeSample'
 import CartOwnerDashboard from './components/CartOwner/Dashboard';
 import CartMenuManagement from './components/CartOwner/MenuManagement';
 import ExcelUpload from './components/CartOwner/ExcelUpload';
+import CartOrders from './components/CartOwner/Orders';
+import CartStaff from './components/CartOwner/Staff';
+import VenueQr from './components/CartOwner/VenueQr';
+import GuestOrder from './components/CartOwner/GuestOrder';
 
 // Cart Worker Components
 import CartWorkerDashboard from './components/CartWorker/Dashboard';
+import WorkerOrders from './components/CartWorker/WorkerOrders';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -94,6 +99,7 @@ function AppContent() {
           <Route path="/customer" element={<MenuScreen />} />
           <Route path="/order" element={<MenuScreen />} />
           <Route path="/menu" element={<MenuScreen />} />
+          <Route path="/guest/:cartId" element={<GuestOrder />} />
           <Route path="/samples" element={<CafeSampleIndex />} />
           <Route path="/samples/:variant" element={<CafeSample />} />
           <Route path="/samples/:variant/book" element={<CafeSample />} />
@@ -274,29 +280,20 @@ function AppContent() {
             } 
           />
           
-          {/* Cart Owner Routes */}
-          <Route 
-            path="/cart-owner" 
-            element={<CartOwnerDashboard />}
-          />
-          <Route 
-            path="/cart-owner/menu/:cartId" 
-            element={<CartMenuManagement />}
-          />
-          <Route 
-            path="/cart-owner/excel-upload/:cartId" 
-            element={<ExcelUpload />}
-          />
+          {/* Restaurant owner routes */}
+          <Route path="/restra-owner" element={<CartOwnerDashboard />} />
+          <Route path="/restra-owner/menu/:cartId" element={<CartMenuManagement />} />
+          <Route path="/restra-owner/orders/:cartId" element={<CartOrders />} />
+          <Route path="/restra-owner/staff/:cartId" element={<CartStaff />} />
+          <Route path="/restra-owner/qr/:cartId" element={<VenueQr />} />
+          <Route path="/restra-owner/excel-upload/:cartId" element={<ExcelUpload />} />
+          <Route path="/cart-owner" element={<Navigate to="/restra-owner" replace />} />
+          <Route path="/cart-owner/*" element={<LegacyOwnerRedirect />} />
           
-          {/* Cart Worker Routes */}
-          <Route 
-            path="/cart-worker" 
-            element={
-              <ProtectedRoute>
-                <CartWorkerDashboard />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/restra-worker" element={<ProtectedRoute><CartWorkerDashboard /></ProtectedRoute>} />
+          <Route path="/restra-worker/orders/:cartId" element={<ProtectedRoute><WorkerOrders /></ProtectedRoute>} />
+          <Route path="/cart-worker" element={<Navigate to="/restra-worker" replace />} />
+          <Route path="/cart-worker/*" element={<LegacyWorkerRedirect />} />
           
           {/* Default redirect for authenticated users */}
           <Route 
@@ -306,8 +303,8 @@ function AppContent() {
                 <Navigate to={`/${
                   user.role === 'super_admin' ? 'superadmin' : 
                   user.role === 'admin' || user.role === 'manager' ? 'admin' : 
-                  user.role === 'cart_owner' ? 'cart-owner' :
-                  user.role === 'cart_worker' ? 'cart-worker' :
+                  user.role === 'cart_owner' ? 'restra-owner' :
+                  user.role === 'cart_worker' ? 'restra-worker' :
                   'chef'
                 }`} replace />
               ) : (
@@ -319,6 +316,18 @@ function AppContent() {
       </div>
     </Router>
   );
+}
+
+function LegacyOwnerRedirect() {
+  const { pathname, search } = window.location;
+  const next = pathname.replace(/^\/cart-owner/, '/restra-owner');
+  return <Navigate to={`${next}${search}`} replace />;
+}
+
+function LegacyWorkerRedirect() {
+  const { pathname, search } = window.location;
+  const next = pathname.replace(/^\/cart-worker/, '/restra-worker');
+  return <Navigate to={`${next}${search}`} replace />;
 }
 
 function App() {

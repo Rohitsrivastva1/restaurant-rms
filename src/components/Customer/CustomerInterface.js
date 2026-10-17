@@ -44,8 +44,8 @@ const CustomerInterface = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Food Cart Ordering</h1>
-              <p className="mt-1 text-sm text-gray-500">Scan QR code to view menu and place orders</p>
+              <h1 className="text-3xl font-bold text-gray-900">Order from your table</h1>
+              <p className="mt-1 text-sm text-gray-500">Scan the QR code to open the menu and place your order</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">

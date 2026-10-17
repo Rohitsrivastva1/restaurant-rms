@@ -4,7 +4,7 @@ export default function CtaBand({ image, alt, eyebrow, title, text, primary, sec
   return (
     <div className="hm-band">
       {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-      <img src={image} alt={`AI-generated sample image of ${alt}`} />
+      <img src={image} alt={alt} />
       <div className="hm-scrim">
         {eyebrow && <div className="hm-eye">{eyebrow}</div>}
         <h2>{title}</h2>

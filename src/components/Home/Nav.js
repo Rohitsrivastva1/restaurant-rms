@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import './home.css';
 
 const LINKS = [
   { to: '/', label: 'Home' },
@@ -7,8 +8,6 @@ const LINKS = [
   { to: '/pricing', label: 'Pricing' },
   { to: '/contact', label: 'Contact' },
 ];
-
-const TRIAL = '/cart-owner-signup';
 
 export default function Nav() {
   const { pathname } = useLocation();
@@ -28,8 +27,8 @@ export default function Nav() {
             {LINKS.map((link) => (
               <Link key={link.to} to={link.to} aria-current={current(link.to)}>{link.label}</Link>
             ))}
-            <Link className="hm-login" to="/login">Login</Link>
-            <Link className="hm-btn primary hm-trial" to={TRIAL}>Start free trial</Link>
+            <Link className="hm-login" to="/login">Log in</Link>
+            <Link className="hm-btn primary hm-trial" to="/contact">Book a demo</Link>
           </nav>
           <button
             className="hm-menu"
@@ -47,11 +46,9 @@ export default function Nav() {
         {LINKS.map((link) => (
           <Link key={link.to} to={link.to}>{link.label}</Link>
         ))}
-        <Link to="/login">Login</Link>
-        <Link to={TRIAL}>Start free trial</Link>
+        <Link to="/login">Log in</Link>
+        <Link to="/contact">Book a demo</Link>
       </nav>
     </>
   );
 }
-
-export { TRIAL };

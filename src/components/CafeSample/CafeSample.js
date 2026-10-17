@@ -10,19 +10,19 @@ const VARIANTS = {
     name: 'Molten',
     theme: 'theme-molten',
     hero: '/cafe-samples/a-hero.png',
-    heroAlt: 'AI-generated sample image of a wood-fired pizza cheese-pull',
+    heroAlt: 'a wood-fired pizza cheese-pull',
     categories: [
       { id: 'pizza', label: 'Pizza', image: '/cafe-samples/a-pizza.png' },
       { id: 'burgers', label: 'Burgers', image: '/cafe-samples/a-burger.png' },
       { id: 'fries', label: 'Fries', image: '/cafe-samples/a-fries.png' },
     ],
     items: [
-      { id: 'margherita', name: 'Wood-fired margherita', price: 399, line: 'Stretchy mozzarella, charred crust', image: '/cafe-samples/a-pizza.png', category: 'pizza', alt: 'AI-generated sample image of wood-fired margherita' },
-      { id: 'burger', name: 'Smash cheeseburger', price: 349, line: 'Crispy-edged patties, molten cheddar', image: '/cafe-samples/a-burger.png', category: 'burgers', alt: 'AI-generated sample image of a smash cheeseburger' },
-      { id: 'fries', name: 'Jalapeno cheese fries', price: 229, line: 'Crispy fries, cheese sauce, jalapeno', image: '/cafe-samples/a-fries.png', category: 'fries', alt: 'AI-generated sample image of jalapeno cheese fries' },
-      { id: 'grill', name: 'Grilled cheese + tomato soup', price: 279, line: 'Golden toastie, stretchy cheese, hot soup', image: '/cafe-samples/a-grill.png', category: 'pizza', alt: 'AI-generated sample image of grilled cheese and tomato soup' },
-      { id: 'soup', name: 'Tomato soup', price: 129, line: 'Slow-simmered, swirl of cream', image: '/cafe-samples/a-soup.png', category: 'pizza', alt: 'AI-generated sample image of tomato soup' },
-      { id: 'slice', name: 'Cheesy garlic slice', price: 149, line: 'Crunchy edge, bubbling cheese', image: '/cafe-samples/a-slice.png', category: 'pizza', alt: 'AI-generated sample image of a cheesy garlic slice' },
+      { id: 'margherita', name: 'Wood-fired margherita', price: 399, line: 'Stretchy mozzarella, charred crust', image: '/cafe-samples/a-pizza.png', category: 'pizza', alt: 'wood-fired margherita' },
+      { id: 'burger', name: 'Smash cheeseburger', price: 349, line: 'Crispy-edged patties, molten cheddar', image: '/cafe-samples/a-burger.png', category: 'burgers', alt: 'a smash cheeseburger' },
+      { id: 'fries', name: 'Jalapeno cheese fries', price: 229, line: 'Crispy fries, cheese sauce, jalapeno', image: '/cafe-samples/a-fries.png', category: 'fries', alt: 'jalapeno cheese fries' },
+      { id: 'grill', name: 'Grilled cheese + tomato soup', price: 279, line: 'Golden toastie, stretchy cheese, hot soup', image: '/cafe-samples/a-grill.png', category: 'pizza', alt: 'grilled cheese and tomato soup' },
+      { id: 'soup', name: 'Tomato soup', price: 129, line: 'Slow-simmered, swirl of cream', image: '/cafe-samples/a-soup.png', category: 'pizza', alt: 'tomato soup' },
+      { id: 'slice', name: 'Cheesy garlic slice', price: 149, line: 'Crunchy edge, bubbling cheese', image: '/cafe-samples/a-slice.png', category: 'pizza', alt: 'a cheesy garlic slice' },
     ],
   },
   fire: {
@@ -30,14 +30,14 @@ const VARIANTS = {
     name: 'Fire',
     theme: 'theme-fire',
     hero: '/cafe-samples/b-hero.png',
-    heroAlt: 'AI-generated sample image of chilli-oil momos',
+    heroAlt: 'chilli-oil momos',
     items: [
-      { id: 'momos', name: 'Chilli-oil momos', price: 189, line: 'Glossy chilli oil, steaming hot', image: '/cafe-samples/b-momos.png', spice: 3, veg: true, alt: 'AI-generated sample image of chilli-oil momos' },
-      { id: 'butter', name: 'Butter chicken + garlic naan', price: 349, line: 'Creamy, smoky, scoop-with-naan rich', image: '/cafe-samples/b-butter.png', spice: 2, veg: false, alt: 'AI-generated sample image of butter chicken and naan' },
-      { id: 'wings', name: 'Glazed chilli wings', price: 299, line: 'Sticky, crackly, sesame-crusted', image: '/cafe-samples/b-wings.png', spice: 3, veg: false, alt: 'AI-generated sample image of glazed chilli wings' },
-      { id: 'paneer', name: 'Chilli paneer', price: 279, line: 'Wok-tossed, peppers, spring onion', image: '/cafe-samples/b-paneer.png', spice: 2, veg: true, alt: 'AI-generated sample image of chilli paneer' },
-      { id: 'naan', name: 'Garlic naan', price: 79, line: 'Charred, buttery, garlic-flecked', image: '/cafe-samples/b-naan.png', spice: 1, veg: true, alt: 'AI-generated sample image of garlic naan' },
-      { id: 'dip', name: 'Chilli-oil dip', price: 59, line: 'Fiery oil, crunchy flakes, extra heat', image: '/cafe-samples/b-dip.png', spice: 3, veg: true, alt: 'AI-generated sample image of chilli-oil dip' },
+      { id: 'momos', name: 'Chilli-oil momos', price: 189, line: 'Glossy chilli oil, steaming hot', image: '/cafe-samples/b-momos.png', spice: 3, veg: true, alt: 'chilli-oil momos' },
+      { id: 'butter', name: 'Butter chicken + garlic naan', price: 349, line: 'Creamy, smoky, scoop-with-naan rich', image: '/cafe-samples/b-butter.png', spice: 2, veg: false, alt: 'butter chicken and naan' },
+      { id: 'wings', name: 'Glazed chilli wings', price: 299, line: 'Sticky, crackly, sesame-crusted', image: '/cafe-samples/b-wings.png', spice: 3, veg: false, alt: 'glazed chilli wings' },
+      { id: 'paneer', name: 'Chilli paneer', price: 279, line: 'Wok-tossed, peppers, spring onion', image: '/cafe-samples/b-paneer.png', spice: 2, veg: true, alt: 'chilli paneer' },
+      { id: 'naan', name: 'Garlic naan', price: 79, line: 'Charred, buttery, garlic-flecked', image: '/cafe-samples/b-naan.png', spice: 1, veg: true, alt: 'garlic naan' },
+      { id: 'dip', name: 'Chilli-oil dip', price: 59, line: 'Fiery oil, crunchy flakes, extra heat', image: '/cafe-samples/b-dip.png', spice: 3, veg: true, alt: 'chilli-oil dip' },
     ],
   },
   caramel: {
@@ -45,21 +45,27 @@ const VARIANTS = {
     name: 'Caramel',
     theme: 'theme-caramel',
     hero: '/cafe-samples/c-hero.png',
-    heroAlt: 'AI-generated sample image of a pancake stack with syrup',
+    heroAlt: 'a pancake stack with syrup',
     categories: [
       { id: 'pancakes', label: 'Pancakes', image: '/cafe-samples/c-hero.png' },
       { id: 'desserts', label: 'Desserts', image: '/cafe-samples/c-lava.png' },
       { id: 'coffee', label: 'Coffee', image: '/cafe-samples/c-latte.png' },
     ],
     items: [
-      { id: 'lava', script: 'molten centre!', name: 'Molten lava cake', price: 229, line: 'Warm chocolate cake, gooey centre, vanilla scoop', image: '/cafe-samples/c-lava.png', category: 'desserts', alt: 'AI-generated sample image of molten lava cake' },
-      { id: 'stack', script: 'golden & buttery', name: 'Syrup stack pancakes', price: 249, line: 'Fluffy, buttery, drenched in caramel syrup', image: '/cafe-samples/c-pancakes.png', category: 'pancakes', alt: 'AI-generated sample image of syrup stack pancakes' },
-      { id: 'latte', script: 'cosy morning', name: 'Latte croissant', price: 189, line: 'Silky latte art, flaky buttery layers', image: '/cafe-samples/c-latte.png', category: 'coffee', alt: 'AI-generated sample image of a latte and croissant' },
-      { id: 'egg', script: 'runny yolk!', name: 'Egg bacon croissant', price: 289, line: 'Runny egg, bacon, melty cheese', image: '/cafe-samples/c-egg.png', category: 'coffee', alt: 'AI-generated sample image of an egg bacon croissant' },
-      { id: 'vanilla', script: 'flaky & warm', name: 'Vanilla croissant', price: 189, line: 'Warm, flaky, shatter-crisp layers', image: '/cafe-samples/c-vanilla.png', category: 'desserts', alt: 'AI-generated sample image of a vanilla croissant' },
-      { id: 'scoop', script: 'cool & creamy', name: 'Crispy scoop', price: 159, line: 'Cool, creamy, perfect with the caramel drizzle', image: '/cafe-samples/c-scoop.png', category: 'desserts', alt: 'AI-generated sample image of a creamy scoop' },
+      { id: 'lava', script: 'molten centre!', name: 'Molten lava cake', price: 229, line: 'Warm chocolate cake, gooey centre, vanilla scoop', image: '/cafe-samples/c-lava.png', category: 'desserts', alt: 'molten lava cake' },
+      { id: 'stack', script: 'golden & buttery', name: 'Syrup stack pancakes', price: 249, line: 'Fluffy, buttery, drenched in caramel syrup', image: '/cafe-samples/c-pancakes.png', category: 'pancakes', alt: 'syrup stack pancakes' },
+      { id: 'latte', script: 'cosy morning', name: 'Latte croissant', price: 189, line: 'Silky latte art, flaky buttery layers', image: '/cafe-samples/c-latte.png', category: 'coffee', alt: 'a latte and croissant' },
+      { id: 'egg', script: 'runny yolk!', name: 'Egg bacon croissant', price: 289, line: 'Runny egg, bacon, melty cheese', image: '/cafe-samples/c-egg.png', category: 'coffee', alt: 'an egg bacon croissant' },
+      { id: 'vanilla', script: 'flaky & warm', name: 'Vanilla croissant', price: 189, line: 'Warm, flaky, shatter-crisp layers', image: '/cafe-samples/c-vanilla.png', category: 'desserts', alt: 'a vanilla croissant' },
+      { id: 'scoop', script: 'cool & creamy', name: 'Crispy scoop', price: 159, line: 'Cool, creamy, perfect with the caramel drizzle', image: '/cafe-samples/c-scoop.png', category: 'desserts', alt: 'a creamy scoop' },
     ],
   },
+};
+
+const VENUES = {
+  molten: { brand: 'Molten', hours: 'Daily 12:00 pm – 11:30 pm' },
+  fire: { brand: 'Fire', hours: 'Daily 1:00 pm – 12:00 am' },
+  caramel: { brand: 'Caramel', hours: 'Daily 8:00 am – 10:00 pm' },
 };
 
 function rupee(n) {
@@ -69,7 +75,7 @@ function rupee(n) {
 function Switcher({ current }) {
   return (
     <div className="cs-switcher">
-      <Link to="/samples">Samples</Link>
+      <Link to="/samples">Themes</Link>
       {Object.values(VARIANTS).map((variant) => (
         <Link key={variant.id} to={`/samples/${variant.id}`} className={current === variant.id ? 'active' : ''}>
           {variant.name}
@@ -80,41 +86,24 @@ function Switcher({ current }) {
 }
 
 function Badges({ variant }) {
-  if (variant === 'fire') {
-    return (
-      <div className="cs-badges">
-        <span className="cs-pill cs-brand">SAMPLE CAFE</span>
-        <div>
-          <span className="cs-pill cs-sample">SAMPLE CONTENT</span>
-          <div className="cs-ai">AI-generated sample images</div>
-        </div>
-      </div>
-    );
-  }
+  const venue = VENUES[variant];
+  const brand = variant === 'fire' ? venue.brand.toUpperCase() : venue.brand;
   return (
     <div className="cs-badges">
-      <div>
-        <span className="cs-pill cs-brand">Sample Cafe</span>
-        {variant === 'caramel' && <div className="cs-ai">AI-generated sample images</div>}
-      </div>
-      <div>
-        <span className="cs-pill cs-sample">SAMPLE CONTENT</span>
-        {variant === 'molten' && <div className="cs-ai">AI-generated sample images</div>}
-      </div>
+      <span className="cs-pill cs-brand">{brand}</span>
+      <span className="cs-pill">{venue.hours}</span>
     </div>
   );
 }
 
-function FindUs() {
+function FindUs({ variant }) {
+  const venue = VENUES[variant];
   return (
     <section className="cs-find">
       <h2>Find us</h2>
-      <p>000 Sample Street, Sample City 000000</p>
-      <p>Daily 8:00 am – 10:00 pm</p>
-      <p><a href="https://maps.google.com/?q=000+Sample+Street" target="_blank" rel="noreferrer">Open map</a></p>
-      <p><a href="tel:0000000000">000-000-0000</a></p>
-      <p>WhatsApp <span>(only if the client has one)</span></p>
-      <p className="cs-fine">AI-generated sample images, not photos. Sample content, prices and details are placeholders.</p>
+      <p>{venue.brand}</p>
+      <p>{venue.hours}</p>
+      <p><a href="mailto:hello@buildnaya.com">hello@buildnaya.com</a></p>
     </section>
   );
 }
@@ -179,7 +168,7 @@ function MoltenHome({ data, category, setCategory, added, addItem }) {
           </div>
         </article>
       ))}
-      <FindUs />
+      <FindUs variant={data.id} />
     </>
   );
 }
@@ -227,7 +216,7 @@ function FireHome({ data, spice, setSpice, added, addItem }) {
           </div>
         </article>
       ))}
-      <FindUs />
+      <FindUs variant={data.id} />
     </>
   );
 }
@@ -279,7 +268,7 @@ function CaramelHome({ data, category, setCategory, added, addItem }) {
           </article>
         ))}
       </div>
-      <FindUs />
+      <FindUs variant={data.id} />
     </>
   );
 }
@@ -288,9 +277,10 @@ function Booking({ variant }) {
   const [party, setParty] = useState(2);
   const [time, setTime] = useState('7:30 pm');
   const [sent, setSent] = useState(false);
-  const [name, setName] = useState('Asha Sample');
-  const [contact, setContact] = useState('000-000-0000');
-  const [notes, setNotes] = useState('Window table if possible');
+  const [name, setName] = useState('');
+  const [contact, setContact] = useState('');
+  const [notes, setNotes] = useState('');
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   return (
     <>
@@ -300,7 +290,14 @@ function Booking({ variant }) {
           <Badges variant={variant} />
         </div>
       </header>
-      <form className="cs-form" onSubmit={(event) => { event.preventDefault(); setSent(true); }}>
+      <form className="cs-form" onSubmit={(event) => {
+        event.preventDefault();
+        const venue = VENUES[variant];
+        const subject = encodeURIComponent(`Table request · ${venue.brand}`);
+        const body = encodeURIComponent(`Name: ${name}\nContact: ${contact}\nDate: ${date}\nTime: ${time}\nParty: ${party}\nNotes: ${notes || '—'}`);
+        window.location.href = `mailto:hello@buildnaya.com?subject=${subject}&body=${body}`;
+        setSent(true);
+      }}>
         <div className="cs-title-row">
           <h1>{variant === 'fire' ? 'BOOK A TABLE' : 'Book a table'}</h1>
           {variant === 'caramel' && <span className="cs-script">just a request</span>}
@@ -313,7 +310,7 @@ function Booking({ variant }) {
         <div className="cs-split">
           <div>
             <label htmlFor="cs-date">{variant === 'fire' ? 'DATE' : 'Date'}</label>
-            <input id="cs-date" defaultValue="Sat, 17 Oct 2026" />
+            <input id="cs-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} required />
           </div>
           <div>
             <label>{variant === 'fire' ? 'PARTY SIZE' : 'Party size'}</label>
@@ -323,9 +320,9 @@ function Booking({ variant }) {
               <button type="button" className="plus" onClick={() => setParty((value) => value + 1)} aria-label="Increase party size">+</button>
             </div>
             {party > 12 ? (
-              <a className="cs-help" href="tel:0000000000">{variant === 'caramel' ? 'more than 12? call us' : 'More than 12? Call us'}</a>
+              <a className="cs-help" href="mailto:hello@buildnaya.com">{variant === 'caramel' ? 'more than 12? write to us' : 'More than 12? Write to us'}</a>
             ) : (
-              <span className="cs-help">{variant === 'caramel' ? 'more than 12? call us' : 'More than 12? Call us'}</span>
+              <span className="cs-help">{variant === 'caramel' ? 'more than 12? write to us' : 'More than 12? Write to us'}</span>
             )}
           </div>
         </div>
@@ -337,11 +334,9 @@ function Booking({ variant }) {
         </div>
         <label htmlFor="cs-notes">{variant === 'fire' ? 'NOTES' : 'Notes'} <span style={{ fontWeight: 600 }}>(optional)</span></label>
         <input id="cs-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
-        <label>{variant === 'fire' ? 'VERIFICATION' : 'Verification'}</label>
-        <div className="cs-verified">✓ {variant === 'fire' ? 'VERIFIED' : 'Verified'}</div>
-        <p className="cs-note">This is a booking request. The cafe will confirm by phone or email.</p>
+        <p className="cs-note">This is a table request. The restaurant confirms by phone or email.</p>
         {sent ? (
-          <div className="cs-sent">Request noted for {name}, party of {party}, {time}. Nothing was sent. This sample does not book a table.</div>
+          <div className="cs-sent">Your email app should open with this request for {name}, party of {party}, at {time}. Send it and the restaurant will confirm by phone or email.</div>
         ) : (
           <button className="cs-btn cs-send" type="submit">{variant === 'fire' ? 'SEND REQUEST' : 'Send request'}</button>
         )}
@@ -355,12 +350,12 @@ export function CafeSampleIndex() {
     <div className="cs-page">
       <Switcher />
       <div className="cs-index">
-        <h1>Round 2 cafe samples</h1>
-        <p>Three craving-led mobile menus. Sample content only. Prices, hours and contact details are placeholders. Nothing is ordered or booked.</p>
+        <h1>Guest menu themes</h1>
+        <p>Three menus a guest can open from the table. Pick a look, then see the dishes, prices and table request the way your floor would.</p>
         <div className="cs-grid">
-          <Link className="cs-index-card" to="/samples/molten"><strong>A · Molten</strong>Cheese-pull pizza, yellow prices, tomato-red actions.</Link>
-          <Link className="cs-index-card fire" to="/samples/fire"><strong>B · Fire</strong>Dark chilli menu with a spicy-level filter.</Link>
-          <Link className="cs-index-card caramel" to="/samples/caramel"><strong>C · Caramel</strong>Brunch pancakes, script notes, raspberry actions.</Link>
+          <Link className="cs-index-card" to="/samples/molten"><strong>Molten</strong>Pizza, burgers and a cheese pull, with clear prices and a direct order button.</Link>
+          <Link className="cs-index-card fire" to="/samples/fire"><strong>Fire</strong>A spice-led menu with a heat filter, veg markers and a dark dining-room look.</Link>
+          <Link className="cs-index-card caramel" to="/samples/caramel"><strong>Caramel</strong>Brunch, coffee and dessert, with handwritten notes beside each plate.</Link>
         </div>
       </div>
     </div>

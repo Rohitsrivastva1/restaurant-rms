@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import OwnerChrome from './OwnerChrome';
+import VenueNav from './VenueNav';
 import { 
   Upload, 
   Download, 
@@ -15,6 +17,7 @@ import * as XLSX from 'xlsx';
 
 const ExcelUpload = () => {
   const { cartId } = useParams();
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
@@ -244,27 +247,23 @@ const ExcelUpload = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <FileSpreadsheet className="h-8 w-8 text-orange-600" />
-              <h1 className="ml-2 text-xl font-semibold text-gray-900">Excel Menu Upload</h1>
-            </div>
-            <button
-              onClick={downloadTemplate}
-              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <Download className="h-4 w-4" />
-              <span>Download Template</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <OwnerChrome
+      kicker="Menu"
+      title="Import dishes."
+      lead="Download the sheet, fill in your menu, then upload it here."
+      nav={(
+        <button className="ro-ghost" type="button" onClick={() => navigate(`/restra-owner/menu/${cartId}`)}>
+          Back to menu
+        </button>
+      )}
+      actions={(
+        <button className="ro-gold" type="button" onClick={downloadTemplate}>
+          <Download size={16} />
+          Download template
+        </button>
+      )}
+    >
+      <VenueNav cartId={cartId} />
         {/* Upload Section */}
         <div className="bg-white rounded-lg shadow mb-6 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Excel File</h2>
@@ -412,8 +411,7 @@ const ExcelUpload = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </OwnerChrome>
   );
 };
 
