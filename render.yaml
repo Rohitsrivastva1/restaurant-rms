@@ -1,25 +1,28 @@
-# Servya frontend — Render Static Site
-# Dashboard: New → Blueprint → connect this repo, or create a Static Site manually.
+# Servya — Render Static Site (CDN). Not a Web Service.
+# Dashboard: New → Static Site  OR  New → Blueprint (this file)
 services:
   - type: web
     name: servya-web
     runtime: static
-    rootDir: .
-    # Install deps first — Render does not run npm install for static sites by default.
-    buildCommand: npm install --include=dev && CI=false npm run build
+    branch: feat/premium-home
+    buildCommand: npm install && CI=false npm run build
     staticPublishPath: build
     envVars:
+      - key: NODE_VERSION
+        value: "20.19.0"
+      - key: CI
+        value: "false"
       - key: REACT_APP_API_URL
         value: https://api.schoolabe.com/api/v1/rms
       - key: REACT_APP_ENVIRONMENT
         value: production
       - key: REACT_APP_DEBUG_MODE
         value: "false"
-      - key: CI
-        value: "false"
-      - key: NODE_VERSION
-        value: "20.19.0"
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
+    headers:
+      - path: /static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
