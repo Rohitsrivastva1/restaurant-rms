@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { Trash2 } from 'lucide-react';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
+import { RoPageSkeleton } from './RoSkeleton';
 import { apiUrl } from '../../services/apiBase';
 
 const Tables = () => {
@@ -114,7 +115,7 @@ const Tables = () => {
   };
 
   if (loading) {
-    return <div className="ro"><div className="ro-loading">Loading tables…</div></div>;
+    return <RoPageSkeleton title="Tables." lead="Loading floor plan…" variant="list" />;
   }
 
   return (

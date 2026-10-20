@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Upload } from 'lucide-react';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
+import { RoPageSkeleton } from './RoSkeleton';
 import { apiUrl } from '../../services/apiBase';
 
 const MenuManagement = () => {
@@ -258,11 +259,7 @@ const MenuManagement = () => {
   };
 
   if (loading) {
-    return (
-      <div className="ro">
-        <div className="ro-loading">Loading the menu…</div>
-      </div>
-    );
+    return <RoPageSkeleton title="Menu." lead="Loading dishes…" variant="menu" />;
   }
 
   return (

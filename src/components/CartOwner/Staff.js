@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
+import { RoPageSkeleton } from './RoSkeleton';
 import { apiUrl } from '../../services/apiBase';
 
 const Staff = () => {
@@ -85,11 +86,7 @@ const Staff = () => {
   };
 
   if (loading) {
-    return (
-      <div className="ro">
-        <div className="ro-loading">Loading staff…</div>
-      </div>
-    );
+    return <RoPageSkeleton title="People on the floor." lead="Loading staff…" variant="list" />;
   }
 
   return (

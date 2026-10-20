@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import './owner.css';
+import { RoPageSkeleton, RoRefreshBar, RoSendSpinner } from './RoSkeleton';
 import { apiUrl } from '../../services/apiBase';
+import { cacheGet, cacheSet } from '../../utils/fastCache';
 import {
   GUEST_STATUS_COPY,
   loadGuestOrderNumbers,
@@ -13,10 +15,13 @@ const GuestOrder = () => {
   const { cartId: cartIdParam, seatKey } = useParams();
   const [searchParams] = useSearchParams();
   const tableFromLink = searchParams.get('table') || '';
-  const [cartId, setCartId] = useState(cartIdParam || '');
-  const [venue, setVenue] = useState(null);
+  const cacheKey = seatKey ? `guest-seat:${seatKey}` : `guest-venue:${cartIdParam}`;
+  const cachedVenue = cacheGet(cacheKey, 300_000);
+  const [cartId, setCartId] = useState(cartIdParam || (cachedVenue?.id ? String(cachedVenue.id) : ''));
+  const [venue, setVenue] = useState(cachedVenue || null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedVenue);
+  const [refreshing, setRefreshing] = useState(false);
   const [lines, setLines] = useState({});
   const [categoryId, setCategoryId] = useState('all');
   const [name, setName] = useState('');
@@ -28,6 +33,7 @@ const GuestOrder = () => {
   const [view, setView] = useState('menu');
   const [bill, setBill] = useState(null);
   const [myOrders, setMyOrders] = useState([]);
+  const myOrdersKey = myOrders.join('|');
 
   useEffect(() => {
     document.title = venue?.name ? `${venue.name} · Servya` : 'Menu · Servya';
@@ -35,6 +41,7 @@ const GuestOrder = () => {
 
   useEffect(() => {
     const load = async () => {
+      if (cachedVenue) setRefreshing(true);
       try {
         if (seatKey) {
           const seatRes = await fetch(apiUrl(`/cart/public/seats/${seatKey}/enter`), {
@@ -47,6 +54,7 @@ const GuestOrder = () => {
           setVenue(seatData.venue);
           setCartId(String(seatData.venue?.id || ''));
           if (seatData.table?.label) setTableNumber(seatData.table.label);
+          cacheSet(cacheKey, seatData.venue);
           return;
         }
         const response = await fetch(apiUrl(`/cart/public/venues/${cartIdParam}`));
@@ -54,17 +62,19 @@ const GuestOrder = () => {
         const data = await response.json();
         setVenue(data);
         setCartId(String(cartIdParam));
+        cacheSet(cacheKey, data);
         if (!tableFromLink && data.tables?.length === 1) {
           setTableNumber(data.tables[0].label);
         }
       } catch (err) {
-        setError('This menu is not available.');
+        if (!cachedVenue) setError('This menu is not available.');
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
     };
     load();
-  }, [cartIdParam, seatKey, tableFromLink]);
+  }, [cartIdParam, seatKey, tableFromLink, cacheKey]);
 
   useEffect(() => {
     if (!cartId) return;
@@ -73,7 +83,7 @@ const GuestOrder = () => {
 
   const activeTable = tableFromLink || tableNumber;
 
-  const loadBill = async () => {
+  const loadBill = useCallback(async () => {
     if (!activeTable || !cartId) {
       setBill(null);
       return;
@@ -84,25 +94,28 @@ const GuestOrder = () => {
     const response = await fetch(apiUrl(`/cart/public/venues/${cartId}/bill?${qs.toString()}`));
     if (!response.ok) return;
     setBill(await response.json());
-  };
+  }, [activeTable, cartId]);
 
   useEffect(() => {
     loadBill().catch(() => {});
     if (!activeTable || !cartId) return undefined;
     const timer = setInterval(() => {
       loadBill().catch(() => {});
-    }, 8000);
+    }, 5000);
     return () => clearInterval(timer);
-  }, [cartId, activeTable, myOrders.join('|')]);
+  }, [cartId, activeTable, myOrdersKey, loadBill]);
 
   useEffect(() => {
-    if (!placed?.orderNumber || ['delivered', 'completed', 'cancelled'].includes(placed.status)) return undefined;
+    const orderNumber = placed?.orderNumber;
+    if (!orderNumber || orderNumber === '…' || ['delivered', 'completed', 'cancelled'].includes(placed.status)) {
+      return undefined;
+    }
     const timer = setInterval(async () => {
-      const response = await fetch(apiUrl(`/cart/public/orders/${placed.orderNumber}/status`));
+      const response = await fetch(apiUrl(`/cart/public/orders/${orderNumber}/status`));
       if (!response.ok) return;
       const data = await response.json();
       setPlaced((current) => (current ? { ...current, status: data.status } : current));
-    }, 5000);
+    }, 4000);
     return () => clearInterval(timer);
   }, [placed?.orderNumber, placed?.status]);
 
@@ -176,19 +189,8 @@ const GuestOrder = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="ro">
-        <div className="ro-loading">
-          <div className="ro-skeleton-stack" aria-busy="true">
-            <div className="ro-skeleton" />
-            <div className="ro-skeleton" />
-            <div className="ro-skeleton short" />
-          </div>
-          <p>Loading the menu…</p>
-        </div>
-      </div>
-    );
+  if (loading && !venue) {
+    return <RoPageSkeleton title="Menu." lead="Loading dishes for your table…" variant="menu" />;
   }
 
   return (
@@ -200,6 +202,7 @@ const GuestOrder = () => {
         </button>
       </header>
       <main className="ro-main">
+        <RoRefreshBar show={refreshing} label="Updating menu…" />
         {error && <p className="ro-error">{error}</p>}
         {venue && (
           <>
@@ -332,12 +335,12 @@ const GuestOrder = () => {
                   )}
                   {formError && <p className="ro-form-error">{formError}</p>}
                   <button
-                    className="ro-gold"
+                    className="ro-gold is-busy"
                     type="submit"
                     disabled={sending || basket.length === 0}
                     aria-busy={sending}
                   >
-                    {sending ? 'Sending…' : 'Send order'}
+                    {sending ? <><RoSendSpinner />Sending to kitchen…</> : 'Send order'}
                   </button>
                 </>
               )}

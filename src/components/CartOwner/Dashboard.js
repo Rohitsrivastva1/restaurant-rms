@@ -4,12 +4,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import './owner.css';
 import { Plus, LogOut, ChefHat, ClipboardList, Users, QrCode } from 'lucide-react';
 import { apiUrl } from '../../services/apiBase';
+import { cacheGet, cacheSet } from '../../utils/fastCache';
+import { RoPageSkeleton, RoRefreshBar } from './RoSkeleton';
 
 const CartOwnerDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [carts, setCarts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = cacheGet('owner-dashboard', 120_000);
+  const [carts, setCarts] = useState(cached?.carts || []);
+  const [loading, setLoading] = useState(!cached);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -23,7 +27,7 @@ const CartOwnerDashboard = () => {
     location: '',
     theme: 'modern'
   });
-  const [service, setService] = useState({});
+  const [service, setService] = useState(cached?.service || {});
 
   useEffect(() => {
     fetchCarts();
@@ -31,39 +35,40 @@ const CartOwnerDashboard = () => {
 
   const fetchCarts = async () => {
     try {
-      setLoading(true);
+      if (cached) setRefreshing(true);
+      else setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(apiUrl('/cart/owner/carts'), {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
+      const [response, summary] = await Promise.all([
+        fetch(apiUrl('/cart/owner/carts'), { headers }),
+        fetch(apiUrl('/cart/owner/summary'), { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
 
       if (response.ok) {
         const data = await response.json();
-        setCarts(data.carts || []);
-        const summary = await fetch(apiUrl('/cart/owner/summary'), {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const list = data.carts || [];
+        setCarts(list);
+        let byVenue = {};
         if (summary.ok) {
           const snapshot = await summary.json();
-          const byVenue = {};
           (snapshot.venues || []).forEach((row) => {
             byVenue[row.cartId] = row;
           });
           setService(byVenue);
         }
-      } else {
+        cacheSet('owner-dashboard', { carts: list, service: byVenue });
+      } else if (!cached) {
         setError('Could not load your venues.');
       }
     } catch (error) {
-      setError('Could not load your venues.');
+      if (!cached) setError('Could not load your venues.');
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -138,12 +143,8 @@ const CartOwnerDashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="ro">
-        <div className="ro-loading">Loading your venues…</div>
-      </div>
-    );
+  if (loading && !carts.length) {
+    return <RoPageSkeleton title="Your venues." lead="Loading your floor…" variant="list" />;
   }
 
   const activeCount = carts.filter((cart) => cart.status === 'active').length;
@@ -193,6 +194,8 @@ const CartOwnerDashboard = () => {
             Add a venue
           </button>
         </div>
+
+        <RoRefreshBar show={refreshing} label="Updating venues…" />
 
         <section className="ro-stats" aria-label="Venue summary">
           <div className="ro-stat"><span>Venues</span><strong>{carts.length}</strong></div>

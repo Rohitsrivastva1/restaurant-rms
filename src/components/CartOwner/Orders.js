@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
+import { RoPageSkeleton, RoRefreshBar, RoSendSpinner } from './RoSkeleton';
 import { apiUrl } from '../../services/apiBase';
+import { cacheGet, cacheSet } from '../../utils/fastCache';
 import {
   COLUMNS,
   NEXT,
@@ -19,9 +21,12 @@ import {
 const Orders = () => {
   const { cartId } = useParams();
   const navigate = useNavigate();
-  const [orders, setOrders] = useState([]);
-  const [menuItems, setMenuItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = cacheGet(`owner-orders:${cartId}`, 120_000);
+  const [orders, setOrders] = useState(cached?.orders || []);
+  const [menuItems, setMenuItems] = useState(cached?.menuItems || []);
+  const [loading, setLoading] = useState(!cached);
+  const [refreshing, setRefreshing] = useState(false);
+  const [fromCache, setFromCache] = useState(Boolean(cached));
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [showTake, setShowTake] = useState(false);
@@ -39,13 +44,21 @@ const Orders = () => {
     window.setTimeout(() => setToast(''), 3000);
   };
 
-  const loadOrders = async () => {
-    const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/orders`), {
-      headers: authHeaders(),
-    });
-    if (!response.ok) throw new Error('orders');
-    const data = await response.json();
-    setOrders(data.orders || []);
+  const loadOrders = async ({ soft = false } = {}) => {
+    if (soft) setRefreshing(true);
+    try {
+      const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/orders`), {
+        headers: authHeaders(),
+      });
+      if (!response.ok) throw new Error('orders');
+      const data = await response.json();
+      const list = data.orders || [];
+      setOrders(list);
+      setFromCache(false);
+      cacheSet(`owner-orders:${cartId}`, { orders: list, menuItems });
+    } finally {
+      if (soft) setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -53,27 +66,40 @@ const Orders = () => {
     let alive = true;
     const load = async () => {
       try {
-        const [orderRes, menuRes] = await Promise.all([
-          fetch(apiUrl(`/cart/owner/carts/${cartId}/orders`), { headers: authHeaders() }),
-          fetch(apiUrl(`/cart/owner/carts/${cartId}/menu-items`), { headers: authHeaders() }),
-        ]);
-        if (!orderRes.ok || !menuRes.ok) throw new Error('load');
+        const orderRes = await fetch(apiUrl(`/cart/owner/carts/${cartId}/orders`), {
+          headers: authHeaders(),
+        });
+        if (!orderRes.ok) throw new Error('orders');
         const orderData = await orderRes.json();
-        const menuData = await menuRes.json();
         if (!alive) return;
-        setOrders(orderData.orders || []);
-        setMenuItems(menuData.menuItems || []);
+        const list = orderData.orders || [];
+        setOrders(list);
         setError('');
+        setFromCache(false);
+        setLoading(false);
+        cacheSet(`owner-orders:${cartId}`, { orders: list, menuItems });
+
+        const menuRes = await fetch(apiUrl(`/cart/owner/carts/${cartId}/menu-items`), {
+          headers: authHeaders(),
+        });
+        if (!alive) return;
+        if (menuRes.ok) {
+          const menuData = await menuRes.json();
+          const items = menuData.menuItems || [];
+          setMenuItems(items);
+          cacheSet(`owner-orders:${cartId}`, { orders: list, menuItems: items });
+        }
       } catch (err) {
-        if (alive) setError('Could not load orders.');
-      } finally {
-        if (alive) setLoading(false);
+        if (alive) {
+          if (!cached) setError('Could not load orders.');
+          setLoading(false);
+        }
       }
     };
     load();
     const timer = setInterval(() => {
-      loadOrders().catch(() => {});
-    }, 8000);
+      loadOrders({ soft: true }).catch(() => {});
+    }, 5000);
     return () => {
       alive = false;
       clearInterval(timer);
@@ -144,18 +170,8 @@ const Orders = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="ro">
-        <div className="ro-loading">
-          <div className="ro-skeleton-stack" aria-busy="true">
-            <div className="ro-skeleton h-24" />
-            <div className="ro-skeleton h-24" />
-          </div>
-          <p>Loading orders…</p>
-        </div>
-      </div>
-    );
+  if (loading && !orders.length) {
+    return <RoPageSkeleton title="Kitchen board." lead="Loading live tickets…" variant="board" />;
   }
 
   const openCount = countOpenOrders(orders);
@@ -181,6 +197,10 @@ const Orders = () => {
     >
       <VenueNav cartId={cartId} />
       {toast && <div className="ro-toast" role="status">{toast}</div>}
+      <RoRefreshBar show={refreshing} label="Refreshing tickets…" />
+      {fromCache && !refreshing && (
+        <p className="ro-stale-note">Showing last board — checking for new tickets…</p>
+      )}
       {error && <p className="ro-error">{error}</p>}
       <section className="ro-stats" aria-label="Order summary">
         <div className="ro-stat"><span>Open</span><strong>{openCount}</strong></div>
@@ -273,7 +293,9 @@ const Orders = () => {
               {formError && <p className="ro-form-error">{formError}</p>}
               <div className="ro-actions">
                 <button className="ro-ghost" type="button" onClick={() => setShowTake(false)}>Cancel</button>
-                <button className="ro-gold" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Send to kitchen'}</button>
+                <button className="ro-gold is-busy" type="submit" disabled={saving} aria-busy={saving}>
+                  {saving ? <><RoSendSpinner />Sending…</> : 'Send to kitchen'}
+                </button>
               </div>
             </form>
           </div>

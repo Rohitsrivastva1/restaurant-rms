@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import OwnerChrome from '../CartOwner/OwnerChrome';
+import { RoPageSkeleton, RoRefreshBar, RoSendSpinner } from '../CartOwner/RoSkeleton';
 import { apiUrl } from '../../services/apiBase';
+import { cacheGet, cacheSet } from '../../utils/fastCache';
 import {
   COLUMNS,
   NEXT,
@@ -19,10 +21,13 @@ import {
 const WorkerOrders = () => {
   const { cartId } = useParams();
   const navigate = useNavigate();
-  const [orders, setOrders] = useState([]);
-  const [menuItems, setMenuItems] = useState([]);
-  const [tables, setTables] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = cacheGet(`worker-orders:${cartId}`, 120_000);
+  const [orders, setOrders] = useState(cached?.orders || []);
+  const [menuItems, setMenuItems] = useState(cached?.menuItems || []);
+  const [tables, setTables] = useState(cached?.tables || []);
+  const [loading, setLoading] = useState(!cached);
+  const [refreshing, setRefreshing] = useState(false);
+  const [fromCache, setFromCache] = useState(Boolean(cached));
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [showTake, setShowTake] = useState(false);
@@ -42,49 +47,80 @@ const WorkerOrders = () => {
     window.setTimeout(() => setToast(''), 3000);
   };
 
-  const loadOrders = async () => {
-    const response = await fetch(apiUrl(`/cart/worker/carts/${cartId}/orders`), {
-      headers: headers(),
+  const persistCache = (next) => {
+    cacheSet(`worker-orders:${cartId}`, {
+      orders: next.orders ?? orders,
+      menuItems: next.menuItems ?? menuItems,
+      tables: next.tables ?? tables,
     });
-    if (!response.ok) throw new Error('orders');
-    const data = await response.json();
-    setOrders(data.orders || []);
-    setError('');
+  };
+
+  const loadOrders = async ({ soft = false } = {}) => {
+    if (soft) setRefreshing(true);
+    try {
+      const response = await fetch(apiUrl(`/cart/worker/carts/${cartId}/orders`), {
+        headers: headers(),
+      });
+      if (!response.ok) throw new Error('orders');
+      const data = await response.json();
+      const list = data.orders || [];
+      setOrders(list);
+      setError('');
+      setFromCache(false);
+      persistCache({ orders: list });
+    } finally {
+      if (soft) setRefreshing(false);
+    }
   };
 
   useEffect(() => {
     document.title = 'Orders · Servya';
     let alive = true;
     const load = async () => {
+      // Paint board as soon as orders return; menu/tables can trail.
       try {
-        const [orderRes, menuRes, tableRes] = await Promise.all([
-          fetch(apiUrl(`/cart/worker/carts/${cartId}/orders`), { headers: headers() }),
-          fetch(apiUrl(`/cart/worker/carts/${cartId}/menu-items`), { headers: headers() }),
-          fetch(apiUrl(`/cart/worker/carts/${cartId}/tables`), { headers: headers() }),
-        ]);
+        const orderRes = await fetch(apiUrl(`/cart/worker/carts/${cartId}/orders`), {
+          headers: headers(),
+        });
         if (!orderRes.ok) throw new Error('orders');
         const orderData = await orderRes.json();
         if (!alive) return;
-        setOrders(orderData.orders || []);
+        const list = orderData.orders || [];
+        setOrders(list);
+        setError('');
+        setFromCache(false);
+        setLoading(false);
+        persistCache({ orders: list });
+
+        const [menuRes, tableRes] = await Promise.all([
+          fetch(apiUrl(`/cart/worker/carts/${cartId}/menu-items`), { headers: headers() }),
+          fetch(apiUrl(`/cart/worker/carts/${cartId}/tables`), { headers: headers() }),
+        ]);
+        if (!alive) return;
+        let nextMenu = menuItems;
+        let nextTables = tables;
         if (menuRes.ok) {
           const menuData = await menuRes.json();
-          setMenuItems(menuData.menuItems || []);
+          nextMenu = menuData.menuItems || [];
+          setMenuItems(nextMenu);
         }
         if (tableRes.ok) {
           const tableData = await tableRes.json();
-          setTables(tableData.tables || []);
+          nextTables = tableData.tables || [];
+          setTables(nextTables);
         }
-        setError('');
+        persistCache({ orders: list, menuItems: nextMenu, tables: nextTables });
       } catch (err) {
-        if (alive) setError('Could not load orders.');
-      } finally {
-        if (alive) setLoading(false);
+        if (alive) {
+          if (!cached) setError('Could not load orders.');
+          setLoading(false);
+        }
       }
     };
     load();
     const timer = setInterval(() => {
-      loadOrders().catch(() => {});
-    }, 8000);
+      loadOrders({ soft: true }).catch(() => {});
+    }, 5000);
     return () => {
       alive = false;
       clearInterval(timer);
@@ -195,19 +231,8 @@ const WorkerOrders = () => {
     loadOrders().catch(() => {});
   };
 
-  if (loading) {
-    return (
-      <div className="ro">
-        <div className="ro-loading">
-          <div className="ro-skeleton-stack" aria-busy="true">
-            <div className="ro-skeleton h-24" />
-            <div className="ro-skeleton h-24" />
-            <div className="ro-skeleton h-24" />
-          </div>
-          <p>Loading orders…</p>
-        </div>
-      </div>
-    );
+  if (loading && !orders.length) {
+    return <RoPageSkeleton title="Kitchen board." lead="Loading live tickets…" variant="board" />;
   }
 
   const openCount = countOpenOrders(orders);
@@ -236,6 +261,10 @@ const WorkerOrders = () => {
       )}
     >
       {toast && <div className="ro-toast" role="status">{toast}</div>}
+      <RoRefreshBar show={refreshing} label="Refreshing tickets…" />
+      {fromCache && !refreshing && (
+        <p className="ro-stale-note">Showing last board — checking for new tickets…</p>
+      )}
       {error && <p className="ro-error">{error}</p>}
       <section className="ro-stats" aria-label="Order summary">
         <div className="ro-stat"><span>Open</span><strong>{openCount}</strong></div>
@@ -341,7 +370,9 @@ const WorkerOrders = () => {
               {formError && <p className="ro-form-error">{formError}</p>}
               <div className="ro-actions">
                 <button className="ro-ghost" type="button" onClick={() => setShowTake(false)}>Cancel</button>
-                <button className="ro-gold" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Send to kitchen'}</button>
+                <button className="ro-gold is-busy" type="submit" disabled={saving} aria-busy={saving}>
+                  {saving ? <><RoSendSpinner />Sending…</> : 'Send to kitchen'}
+                </button>
               </div>
             </form>
           </div>
