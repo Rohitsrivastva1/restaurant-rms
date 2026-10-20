@@ -3,11 +3,24 @@ import React from 'react';
 /** Strip tags / control chars — always treat user text as plain. */
 export function plainText(value, fallback = '') {
   if (value == null) return fallback;
-  const text = String(value)
-    .replace(/<[^>]*>/g, '')
+  let text = String(value);
+  // Repeat to defeat nested/partial encodings like <scr<script>ipt>
+  for (let i = 0; i < 3; i += 1) {
+    text = text.replace(/<[^>]*>/g, '');
+  }
+  text = text
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
     .replace(/&nbsp;/gi, ' ')
-    .trim();
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&amp;/gi, '&');
+  // After entity decode, strip any tags that appeared.
+  for (let i = 0; i < 2; i += 1) {
+    text = text.replace(/<[^>]*>/g, '');
+  }
+  text = text.trim();
   return text || fallback;
 }
 
