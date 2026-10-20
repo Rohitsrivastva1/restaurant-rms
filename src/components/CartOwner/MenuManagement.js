@@ -137,6 +137,16 @@ const MenuManagement = () => {
 
   const handleItemSubmit = async (e) => {
     e.preventDefault();
+    const name = String(itemForm.name || '').trim();
+    const price = parseFloat(itemForm.price);
+    if (!name) {
+      setError('Dish name is required.');
+      return;
+    }
+    if (Number.isNaN(price) || price < 0) {
+      setError('Enter a valid non-negative price.');
+      return;
+    }
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
@@ -153,7 +163,8 @@ const MenuManagement = () => {
         },
         body: JSON.stringify({
           ...itemForm,
-          price: parseFloat(itemForm.price),
+          name,
+          price,
           preparationTime: parseInt(itemForm.preparationTime) || 0,
           sortOrder: parseInt(itemForm.sortOrder) || 0
         })
@@ -170,13 +181,15 @@ const MenuManagement = () => {
         }
         setShowItemModal(false);
         setEditingItem(null);
+        setError('');
         setItemForm({
           name: '', description: '', price: '', categoryId: '',
           imageUrl: '', isAvailable: true, isVegetarian: false,
           isSpicy: false, preparationTime: '', sortOrder: 0
         });
       } else {
-        setError('Failed to save menu item');
+        const body = await response.json().catch(() => ({}));
+        setError(body.detail || body.message || 'Failed to save menu item');
       }
     } catch (error) {
       setError('Error saving menu item');

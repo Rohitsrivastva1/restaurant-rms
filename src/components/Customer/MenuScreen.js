@@ -233,6 +233,8 @@ const MenuScreen = () => {
 
       let response;
       if (paymentMethod === 'razorpay') {
+        const { loadRazorpay } = await import('../../utils/loadRazorpay');
+        const RazorpayCtor = await loadRazorpay();
         // Create Razorpay order
         response = await axios.post('http://localhost:3000/payments/create-order', orderData);
         
@@ -275,7 +277,7 @@ const MenuScreen = () => {
           }
         };
 
-        const rzp = new window.Razorpay(options);
+        const rzp = new RazorpayCtor(options);
         rzp.open();
       } else {
         // Cash payment

@@ -3,25 +3,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
-import { apiUrl, authHeaders } from '../../services/apiBase';
-
-const COLUMNS = [
-  { key: 'new', title: 'New', statuses: ['pending'] },
-  { key: 'kitchen', title: 'Kitchen', statuses: ['accepted', 'cooking', 'cooking_done'] },
-  { key: 'ready', title: 'Ready', statuses: ['ready_for_pickup'] },
-  { key: 'done', title: 'Done', statuses: ['delivered', 'completed'] },
-];
-
-const NEXT = {
-  pending: { status: 'accepted', label: 'Accept' },
-  accepted: { status: 'cooking', label: 'Start cooking' },
-  cooking: { status: 'ready_for_pickup', label: 'Ready' },
-  cooking_done: { status: 'ready_for_pickup', label: 'Ready' },
-  ready_for_pickup: { status: 'delivered', label: 'Served' },
-  delivered: { status: 'completed', label: 'Complete' },
-};
-
-const rupee = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
+import { apiUrl } from '../../services/apiBase';
+import {
+  COLUMNS,
+  NEXT,
+  STATUS_COPY,
+  countActiveTickets,
+  countOpenOrders,
+  printKot,
+  rupee,
+  ticketAge,
+  ticketAgeClass,
+} from '../../utils/orderBoard';
 
 const Orders = () => {
   const { cartId } = useParams();
@@ -30,6 +23,7 @@ const Orders = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
   const [showTake, setShowTake] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
@@ -39,6 +33,11 @@ const Orders = () => {
     Authorization: `Bearer ${localStorage.getItem('token')}`,
     'Content-Type': 'application/json',
   });
+
+  const showToast = (message) => {
+    setToast(message);
+    window.setTimeout(() => setToast(''), 3000);
+  };
 
   const loadOrders = async () => {
     const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/orders`), {
@@ -50,6 +49,7 @@ const Orders = () => {
   };
 
   useEffect(() => {
+    document.title = 'Orders · Servya';
     let alive = true;
     const load = async () => {
       try {
@@ -81,6 +81,7 @@ const Orders = () => {
   }, [cartId]);
 
   const advance = async (order, status) => {
+    if (status === 'cancelled' && !window.confirm(`Cancel order ${order.orderNumber}?`)) return;
     const response = await fetch(apiUrl(`/cart/owner/orders/${order.id}/status`), {
       method: 'PUT',
       headers: authHeaders(),
@@ -89,6 +90,7 @@ const Orders = () => {
     if (response.ok) {
       const updated = await response.json();
       setOrders((prev) => prev.map((row) => (row.id === order.id ? { ...row, ...updated, items: row.items } : row)));
+      showToast(status === 'cancelled' ? 'Order cancelled' : `${STATUS_COPY[status] || status}`);
     }
   };
 
@@ -128,12 +130,13 @@ const Orders = () => {
       });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        setFormError(body.message || 'Could not save the order.');
+        setFormError(body.message || body.detail || 'Could not save the order.');
         return;
       }
       const created = await response.json();
       setOrders((prev) => [created, ...prev]);
       setShowTake(false);
+      showToast('Order sent to kitchen');
     } catch (err) {
       setFormError('Could not save the order.');
     } finally {
@@ -144,18 +147,26 @@ const Orders = () => {
   if (loading) {
     return (
       <div className="ro">
-        <div className="ro-loading">Loading orders…</div>
+        <div className="ro-loading">
+          <div className="ro-skeleton-stack" aria-busy="true">
+            <div className="ro-skeleton h-24" />
+            <div className="ro-skeleton h-24" />
+          </div>
+          <p>Loading orders…</p>
+        </div>
       </div>
     );
   }
 
-  const openCount = orders.filter((order) => !['completed', 'cancelled', 'delivered'].includes(order.status)).length;
+  const openCount = countOpenOrders(orders);
+  const todayCount = countActiveTickets(orders);
 
   return (
     <OwnerChrome
       kicker="Orders"
       title="Kitchen board."
       lead="Tickets land here as soon as a guest, or you, sends an order."
+      pageTitle="Orders · Servya"
       nav={(
         <button className="ro-ghost" type="button" onClick={() => navigate('/restra-owner')}>
           Venues
@@ -169,10 +180,11 @@ const Orders = () => {
       )}
     >
       <VenueNav cartId={cartId} />
+      {toast && <div className="ro-toast" role="status">{toast}</div>}
       {error && <p className="ro-error">{error}</p>}
       <section className="ro-stats" aria-label="Order summary">
         <div className="ro-stat"><span>Open</span><strong>{openCount}</strong></div>
-        <div className="ro-stat"><span>Today</span><strong>{orders.length}</strong></div>
+        <div className="ro-stat"><span>Today</span><strong>{todayCount}</strong></div>
       </section>
       {!error && orders.length === 0 && (
         <div className="ro-empty">
@@ -187,12 +199,17 @@ const Orders = () => {
               <h2>{column.title}</h2>
               {orders.filter((order) => column.statuses.includes(order.status)).map((order) => {
                 const next = NEXT[order.status];
+                const age = ticketAge(order.createdAt);
                 return (
                   <article className="ro-ticket" key={order.id}>
                     <header>
                       <strong>{order.orderNumber}</strong>
                       <span>{rupee(order.finalAmount)}</span>
                     </header>
+                    <div className="ro-ticket-meta">
+                      <span className="ro-pill active">{STATUS_COPY[order.status] || order.status}</span>
+                      {age && <span className={`ro-age ${ticketAgeClass(order.createdAt)}`}>{age}</span>}
+                    </div>
                     <p>{order.customerName || 'Guest'}{order.tableNumber ? ` · Table ${order.tableNumber}` : ''}</p>
                     {order.specialInstructions && <p>{order.specialInstructions}</p>}
                     <ul>
@@ -201,12 +218,13 @@ const Orders = () => {
                       ))}
                     </ul>
                     <div className="ro-ticket-actions">
-                      {next && (
+                      {column.key !== 'done' && next && (
                         <button className="ro-gold" type="button" onClick={() => advance(order, next.status)}>
                           {next.label}
                         </button>
                       )}
-                      {order.status !== 'cancelled' && order.status !== 'completed' && (
+                      <button className="ro-ghost" type="button" onClick={() => printKot(order)}>KOT</button>
+                      {column.key !== 'done' && order.status !== 'cancelled' && (
                         <button className="ro-ghost" type="button" onClick={() => advance(order, 'cancelled')}>
                           Cancel
                         </button>

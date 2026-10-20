@@ -340,14 +340,19 @@
   display: block;
 }
 
+.cs-card-photo {
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+}
+
 .cs-card-price,
 .cs-card-add {
   position: absolute;
-  top: 12px;
+  z-index: 2;
 }
 
-.cs-card-price { left: 12px; }
-.cs-card-add { right: 12px; top: auto; bottom: 12px; }
+.cs-card-price { left: 12px; top: 12px; }
+.cs-card-add { right: 12px; bottom: 12px; }
 
 .theme-molten .cs-price,
 .theme-molten .cs-add {

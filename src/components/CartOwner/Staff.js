@@ -46,6 +46,10 @@ const Staff = () => {
 
   const addStaff = async (event) => {
     event.preventDefault();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setFormError('Enter a valid email address.');
+      return;
+    }
     setSaving(true);
     setFormError('');
     try {
@@ -56,7 +60,7 @@ const Staff = () => {
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFormError(body.message || 'Could not add this person.');
+        setFormError(body.message || body.detail || 'Could not add this person.');
         return;
       }
       setWorkers((prev) => [body, ...prev]);

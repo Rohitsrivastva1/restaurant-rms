@@ -42,8 +42,12 @@ const CartOwnerSignup = () => {
       setError('Email is required');
       return false;
     }
-    if (!formData.email.includes('@')) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       setError('Please enter a valid email address');
+      return false;
+    }
+    if (!formData.businessName.trim()) {
+      setError('Venue / business name is required');
       return false;
     }
     if (!formData.password) {

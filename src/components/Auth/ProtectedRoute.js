@@ -1,13 +1,26 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { canAccess, MODULES } from '../../utils/roleMatrix';
+import { canAccess } from '../../utils/roleMatrix';
 
-const ProtectedRoute = ({ children, requiredModule = null, requiredPermission = 'view' }) => {
+const homeForRole = (role) => {
+  if (role === 'cart_owner') return '/restra-owner';
+  if (role === 'cart_worker') return '/restra-worker';
+  if (role === 'super_admin') return '/superadmin';
+  if (role === 'admin' || role === 'manager') return '/admin';
+  if (role === 'chef' || role === 'waiter') return '/restra-worker';
+  return '/login';
+};
+
+const ProtectedRoute = ({
+  children,
+  requiredModule = null,
+  requiredPermission = 'view',
+  allowedRoles = null,
+}) => {
   const { user, isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  // Show loading while checking authentication
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -19,38 +32,23 @@ const ProtectedRoute = ({ children, requiredModule = null, requiredPermission = 
     );
   }
 
-  // If not authenticated, redirect to login
   if (!isAuthenticated()) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If no specific module required, just check authentication
+  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    return <Navigate to={homeForRole(user?.role)} replace state={{ notice: 'No access' }} />;
+  }
+
   if (!requiredModule) {
     return children;
   }
 
-  // Check if user has permission to access this module
   if (!canAccess(user.role, requiredModule)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="text-red-600 text-6xl mb-4">🚫</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-4">
-            You don't have permission to access this page.
-          </p>
-          <button
-            onClick={() => window.history.back()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
+    return <Navigate to={homeForRole(user?.role)} replace state={{ notice: 'No access' }} />;
   }
 
   return children;
 };
 
-export default ProtectedRoute; 
+export default ProtectedRoute;

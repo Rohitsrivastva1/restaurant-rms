@@ -70,11 +70,12 @@ const Login = () => {
           admin: '/admin',
           manager: '/admin',
           chef: '/chef',
+          waiter: '/restra-worker',
           super_admin: '/superadmin',
           cart_owner: '/restra-owner',
           cart_worker: '/restra-worker',
         };
-        const redirectPath = redirectMap[result.user?.role] || '/admin';
+        const redirectPath = redirectMap[result.user?.role] || '/login';
         navigate(redirectPath, { replace: true });
       } else {
         setError(result.error || 'Login failed. Please check your credentials.');

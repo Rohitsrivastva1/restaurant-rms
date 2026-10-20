@@ -97,9 +97,9 @@ function AppContent() {
           <Route path="/superadmin-signup" element={<SuperAdminSignup />} />
           <Route path="/cart-owner-signup" element={<CartOwnerSignup />} />
           <Route path="/login-test" element={<LoginTest />} />
-          <Route path="/customer" element={<MenuScreen />} />
-          <Route path="/order" element={<MenuScreen />} />
-          <Route path="/menu" element={<MenuScreen />} />
+          <Route path="/customer" element={<LegacyRoleHome />} />
+          <Route path="/order" element={<LegacyRoleHome />} />
+          <Route path="/menu" element={<LegacyRoleHome />} />
           <Route path="/guest/seat/:seatKey" element={<GuestOrder />} />
           <Route path="/guest/:cartId" element={<GuestOrder />} />
           <Route path="/samples" element={<CafeSampleIndex />} />
@@ -168,11 +168,11 @@ function AppContent() {
             } 
           />
           
-          {/* Admin/Manager Routes */}
+          {/* Admin/Manager Routes — blocked for Servya cart roles */}
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'super_admin']}>
                 <DashboardLayout role={user?.role} user={user}>
                   <AdminDashboard />
                 </DashboardLayout>
@@ -182,7 +182,7 @@ function AppContent() {
           <Route 
             path="/admin/menu" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'super_admin']}>
                 <DashboardLayout role={user?.role} user={user}>
                   <MenuManagement />
                 </DashboardLayout>
@@ -192,7 +192,7 @@ function AppContent() {
           <Route 
             path="/admin/tables" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'super_admin']}>
                 <DashboardLayout role={user?.role} user={user}>
                   <TableManagement />
                 </DashboardLayout>
@@ -202,7 +202,7 @@ function AppContent() {
           <Route 
             path="/admin/orders" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'super_admin']}>
                 <DashboardLayout role={user?.role} user={user}>
                   <OrderManagement />
                 </DashboardLayout>
@@ -212,7 +212,7 @@ function AppContent() {
           <Route 
             path="/admin/staff" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'super_admin']}>
                 <DashboardLayout role={user?.role} user={user}>
                   <StaffManagement />
                 </DashboardLayout>
@@ -222,7 +222,7 @@ function AppContent() {
           <Route 
             path="/admin/reports" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'super_admin']}>
                 <DashboardLayout role={user?.role} user={user}>
                   <AdminReports />
                 </DashboardLayout>
@@ -232,7 +232,7 @@ function AppContent() {
           <Route 
             path="/admin/feedback" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'super_admin']}>
                 <DashboardLayout role={user?.role} user={user}>
                   <CustomerFeedback />
                 </DashboardLayout>
@@ -242,7 +242,7 @@ function AppContent() {
           <Route 
             path="/admin/settings" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'super_admin']}>
                 <DashboardLayout role={user?.role} user={user}>
                   <AdminSettings />
                 </DashboardLayout>
@@ -283,18 +283,18 @@ function AppContent() {
           />
           
           {/* Restaurant owner routes */}
-          <Route path="/restra-owner" element={<CartOwnerDashboard />} />
-          <Route path="/restra-owner/menu/:cartId" element={<CartMenuManagement />} />
-          <Route path="/restra-owner/orders/:cartId" element={<CartOrders />} />
-          <Route path="/restra-owner/staff/:cartId" element={<CartStaff />} />
-          <Route path="/restra-owner/tables/:cartId" element={<VenueTables />} />
-          <Route path="/restra-owner/qr/:cartId" element={<VenueQr />} />
-          <Route path="/restra-owner/excel-upload/:cartId" element={<ExcelUpload />} />
+          <Route path="/restra-owner" element={<ProtectedRoute allowedRoles={['cart_owner']}><CartOwnerDashboard /></ProtectedRoute>} />
+          <Route path="/restra-owner/menu/:cartId" element={<ProtectedRoute allowedRoles={['cart_owner']}><CartMenuManagement /></ProtectedRoute>} />
+          <Route path="/restra-owner/orders/:cartId" element={<ProtectedRoute allowedRoles={['cart_owner']}><CartOrders /></ProtectedRoute>} />
+          <Route path="/restra-owner/staff/:cartId" element={<ProtectedRoute allowedRoles={['cart_owner']}><CartStaff /></ProtectedRoute>} />
+          <Route path="/restra-owner/tables/:cartId" element={<ProtectedRoute allowedRoles={['cart_owner']}><VenueTables /></ProtectedRoute>} />
+          <Route path="/restra-owner/qr/:cartId" element={<ProtectedRoute allowedRoles={['cart_owner']}><VenueQr /></ProtectedRoute>} />
+          <Route path="/restra-owner/excel-upload/:cartId" element={<ProtectedRoute allowedRoles={['cart_owner']}><ExcelUpload /></ProtectedRoute>} />
           <Route path="/cart-owner" element={<Navigate to="/restra-owner" replace />} />
           <Route path="/cart-owner/*" element={<LegacyOwnerRedirect />} />
           
-          <Route path="/restra-worker" element={<ProtectedRoute><CartWorkerDashboard /></ProtectedRoute>} />
-          <Route path="/restra-worker/orders/:cartId" element={<ProtectedRoute><WorkerOrders /></ProtectedRoute>} />
+          <Route path="/restra-worker" element={<ProtectedRoute allowedRoles={['cart_worker']}><CartWorkerDashboard /></ProtectedRoute>} />
+          <Route path="/restra-worker/orders/:cartId" element={<ProtectedRoute allowedRoles={['cart_worker']}><WorkerOrders /></ProtectedRoute>} />
           <Route path="/cart-worker" element={<Navigate to="/restra-worker" replace />} />
           <Route path="/cart-worker/*" element={<LegacyWorkerRedirect />} />
           
@@ -331,6 +331,16 @@ function LegacyWorkerRedirect() {
   const { pathname, search } = window.location;
   const next = pathname.replace(/^\/cart-worker/, '/restra-worker');
   return <Navigate to={`${next}${search}`} replace />;
+}
+
+function LegacyRoleHome() {
+  const { user, isAuthenticated } = useAuth();
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  if (user?.role === 'cart_owner') return <Navigate to="/restra-owner" replace />;
+  if (user?.role === 'cart_worker') return <Navigate to="/restra-worker" replace />;
+  if (user?.role === 'admin' || user?.role === 'manager') return <Navigate to="/admin" replace />;
+  if (user?.role === 'super_admin') return <Navigate to="/superadmin" replace />;
+  return <Navigate to="/" replace />;
 }
 
 function App() {

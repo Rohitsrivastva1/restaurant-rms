@@ -108,12 +108,21 @@ function FindUs({ variant }) {
   );
 }
 
-function StickyBar({ variant, count }) {
+function StickyBar({ variant, count, onOrderClick }) {
   const orderLabel = variant === 'fire' ? `ORDER${count ? ` · ${count}` : ''}` : `Order${count ? ` · ${count}` : ''}`;
   const bookLabel = variant === 'fire' ? 'BOOK A TABLE' : 'Book a table';
   return (
     <div className="cs-bar">
-      <button type="button" className="cs-bar-order">{orderLabel}</button>
+      <button
+        type="button"
+        className="cs-bar-order"
+        onClick={onOrderClick}
+        disabled={!count}
+        aria-disabled={!count}
+        title={count ? 'Review your order' : 'Add a dish first'}
+      >
+        {orderLabel}
+      </button>
       <Link className="cs-bar-book" to={`/samples/${variant}/book`}>{bookLabel}</Link>
     </div>
   );
@@ -394,7 +403,16 @@ export function CafeSample() {
             {variant === 'caramel' && <CaramelHome data={data} category={category} setCategory={setCategory} added={added} addItem={addItem} />}
           </>
         )}
-        {!booking && <StickyBar variant={variant} count={count} />}
+        {!booking && (
+          <StickyBar
+            variant={variant}
+            count={count}
+            onOrderClick={() => {
+              const menu = document.querySelector('.cs-chips, .cs-menu, .cs-grid');
+              if (menu) menu.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          />
+        )}
       </div>
     </div>
   );
