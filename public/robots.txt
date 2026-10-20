@@ -1,3 +1,17 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Private / app surfaces — no SEO value
+Disallow: /restra-owner
+Disallow: /restra-worker
+Disallow: /cart-owner
+Disallow: /cart-worker
+Disallow: /admin
+Disallow: /chef
+Disallow: /superadmin
+Disallow: /guest/
+Disallow: /login-test
+Disallow: /logout
+
+Sitemap: https://restaurant-rms-1.onrender.com/sitemap.xml
