@@ -63,24 +63,87 @@ export const ticketAgeClass = (createdAt) => {
   return minutes > 10 ? 'ro-age-hot' : '';
 };
 
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+/** Open printable HTML without about:blank. noopener + document.write = blank tab. */
+const openPrintHtml = (html, title = 'Print') => {
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+
+  // Hidden iframe keeps the user on the kitchen board (no blank tab).
+  const frame = document.createElement('iframe');
+  frame.setAttribute('title', title);
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none';
+  document.body.appendChild(frame);
+
+  const cleanup = (delayMs = 1500) => {
+    window.setTimeout(() => {
+      try {
+        frame.remove();
+      } catch {
+        /* ignore */
+      }
+      URL.revokeObjectURL(url);
+    }, delayMs);
+  };
+
+  frame.onload = () => {
+    const win = frame.contentWindow;
+    if (!win) {
+      cleanup(0);
+      window.alert('Could not open print preview. Try again.');
+      return;
+    }
+    try {
+      win.focus();
+      win.print();
+      cleanup(2000);
+    } catch {
+      // Last resort: real tab with blob URL (has content, not about:blank).
+      const popup = window.open(url, '_blank');
+      if (!popup) {
+        cleanup(0);
+        window.alert('Allow pop-ups to print KOT / bill.');
+        return;
+      }
+      cleanup(60_000);
+    }
+  };
+
+  frame.src = url;
+  return true;
+};
+
 export const printKot = (order) => {
+  if (!order) return false;
   const items = (order.items || [])
-    .map((item) => `<li>${item.quantity} × ${item.itemName || item.name}</li>`)
+    .map((item) => `<li>${escapeHtml(item.quantity)} × ${escapeHtml(item.itemName || item.name || 'Item')}</li>`)
     .join('');
-  const html = `<!doctype html><html><head><title>KOT ${order.orderNumber}</title>
-    <style>body{font-family:system-ui,sans-serif;padding:16px}h1{font-size:18px;margin:0 0 8px}
-    p{margin:4px 0}ul{padding-left:18px}</style></head><body>
-    <h1>KOT · ${order.orderNumber}</h1>
-    <p>${order.customerName || 'Guest'}${order.tableNumber ? ` · Table ${order.tableNumber}` : ''}</p>
-    <p>${STATUS_COPY[order.status] || order.status}</p>
-    ${order.specialInstructions ? `<p>Note: ${order.specialInstructions}</p>` : ''}
-    <ul>${items}</ul>
-    <script>window.print()</script></body></html>`;
-  const win = window.open('', '_blank', 'noopener,noreferrer,width=420,height=640');
-  if (win) {
-    win.document.write(html);
-    win.document.close();
-  }
+  const html = `<!doctype html><html><head><meta charset="utf-8"/><title>KOT ${escapeHtml(order.orderNumber)}</title>
+    <style>
+      body{font-family:system-ui,sans-serif;padding:16px;color:#111}
+      h1{font-size:18px;margin:0 0 8px}
+      p{margin:4px 0}ul{padding-left:18px}
+      .muted{color:#666;font-size:13px}
+      @media print{body{padding:0}}
+    </style></head><body>
+    <h1>KOT · ${escapeHtml(order.orderNumber)}</h1>
+    <p>${escapeHtml(order.customerName || 'Guest')}${order.tableNumber ? ` · Table ${escapeHtml(order.tableNumber)}` : ''}</p>
+    <p class="muted">${escapeHtml(STATUS_COPY[order.status] || order.status || '')}</p>
+    ${order.specialInstructions ? `<p>Note: ${escapeHtml(order.specialInstructions)}</p>` : ''}
+    <ul>${items || '<li>No items on ticket</li>'}</ul>
+    <script>
+      window.addEventListener('load', function () {
+        setTimeout(function () { window.focus(); window.print(); }, 50);
+      });
+    </script></body></html>`;
+  return openPrintHtml(html, `KOT ${order.orderNumber || ''}`);
 };
 
 export const printBill = (bill, tableLabel) => {
@@ -88,24 +151,25 @@ export const printBill = (bill, tableLabel) => {
     .filter((order) => order.status !== 'cancelled')
     .map(
       (order) =>
-        `<tr><td>${order.orderNumber}</td><td>${(order.items || [])
+        `<tr><td>${escapeHtml(order.orderNumber)}</td><td>${escapeHtml((order.items || [])
           .map((item) => `${item.quantity}×${item.name || item.itemName}`)
-          .join(', ')}</td><td>${rupee(order.finalAmount)}</td></tr>`
+          .join(', '))}</td><td>${escapeHtml(rupee(order.finalAmount))}</td></tr>`
     )
     .join('');
-  const html = `<!doctype html><html><head><title>Bill Table ${tableLabel}</title>
-    <style>body{font-family:system-ui,sans-serif;padding:16px}table{width:100%;border-collapse:collapse}
-    td,th{border-bottom:1px solid #ddd;padding:6px;text-align:left;font-size:13px}</style></head><body>
-    <h1>Table ${tableLabel}</h1>
-    <p>Total ${rupee(bill?.bill || 0)}</p>
+  const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Bill Table ${escapeHtml(tableLabel)}</title>
+    <style>body{font-family:system-ui,sans-serif;padding:16px;color:#111}table{width:100%;border-collapse:collapse}
+    td,th{border-bottom:1px solid #ddd;padding:6px;text-align:left;font-size:13px}
+    @media print{body{padding:0}}</style></head><body>
+    <h1>Table ${escapeHtml(tableLabel)}</h1>
+    <p>Total ${escapeHtml(rupee(bill?.bill || 0))}</p>
     <table><thead><tr><th>Order</th><th>Items</th><th>Amount</th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    <script>window.print()</script></body></html>`;
-  const win = window.open('', '_blank', 'noopener,noreferrer,width=480,height=720');
-  if (win) {
-    win.document.write(html);
-    win.document.close();
-  }
+    <tbody>${rows || '<tr><td colspan="3">No orders</td></tr>'}</tbody></table>
+    <script>
+      window.addEventListener('load', function () {
+        setTimeout(function () { window.focus(); window.print(); }, 50);
+      });
+    </script></body></html>`;
+  return openPrintHtml(html, `Bill ${tableLabel || ''}`);
 };
 
 const guestOrdersKey = (cartId) => `servya-guest-orders:${cartId}`;
