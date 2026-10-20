@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import './owner.css';
 import { Plus, LogOut, ChefHat, ClipboardList, Users, QrCode } from 'lucide-react';
+import { apiUrl } from '../../services/apiBase';
 
 const CartOwnerDashboard = () => {
   const { user, logout } = useAuth();
@@ -22,6 +23,7 @@ const CartOwnerDashboard = () => {
     location: '',
     theme: 'modern'
   });
+  const [service, setService] = useState({});
 
   useEffect(() => {
     fetchCarts();
@@ -31,7 +33,7 @@ const CartOwnerDashboard = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/cart/owner/carts', {
+      const response = await fetch(apiUrl('/cart/owner/carts'), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -41,6 +43,19 @@ const CartOwnerDashboard = () => {
       if (response.ok) {
         const data = await response.json();
         setCarts(data.carts || []);
+        const summary = await fetch(apiUrl('/cart/owner/summary'), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (summary.ok) {
+          const snapshot = await summary.json();
+          const byVenue = {};
+          (snapshot.venues || []).forEach((row) => {
+            byVenue[row.cartId] = row;
+          });
+          setService(byVenue);
+        }
       } else {
         setError('Could not load your venues.');
       }
@@ -64,7 +79,7 @@ const CartOwnerDashboard = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/cart/owner/carts', {
+      const response = await fetch(apiUrl('/cart/owner/carts'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -132,8 +147,26 @@ const CartOwnerDashboard = () => {
   }
 
   const activeCount = carts.filter((cart) => cart.status === 'active').length;
-  const pendingCount = carts.filter((cart) => cart.status === 'pending').length;
   const workerCount = carts.reduce((total, cart) => total + (cart.workers?.length || 0), 0);
+  const openTickets = Object.values(service).reduce((total, row) => total + Number(row.openOrders || 0), 0);
+  const todayRevenue = Object.values(service).reduce((total, row) => total + Number(row.todayRevenue || 0), 0);
+  const rupee = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
+
+  const setVenueOpen = async (cart, open) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(apiUrl(`/cart/owner/carts/${cart.id}/service`), {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ open }),
+    });
+    if (response.ok) {
+      const updated = await response.json();
+      setCarts((prev) => prev.map((row) => (row.id === cart.id ? { ...row, status: updated.status } : row)));
+    }
+  };
 
   return (
     <div className="ro">
@@ -163,8 +196,9 @@ const CartOwnerDashboard = () => {
 
         <section className="ro-stats" aria-label="Venue summary">
           <div className="ro-stat"><span>Venues</span><strong>{carts.length}</strong></div>
-          <div className="ro-stat"><span>Open</span><strong>{activeCount}</strong></div>
-          <div className="ro-stat"><span>Waiting</span><strong>{pendingCount}</strong></div>
+          <div className="ro-stat"><span>Serving</span><strong>{activeCount}</strong></div>
+          <div className="ro-stat"><span>Open tickets</span><strong>{openTickets}</strong></div>
+          <div className="ro-stat"><span>Today</span><strong>{rupee(todayRevenue)}</strong></div>
           <div className="ro-stat"><span>Staff</span><strong>{workerCount}</strong></div>
         </section>
 
@@ -211,7 +245,8 @@ const CartOwnerDashboard = () => {
                 {cart.description && <p>{cart.description}</p>}
                 {cart.location && <p>{cart.location}</p>}
                 <div className="ro-meta">
-                  <span>Added {cart.createdAt ? new Date(cart.createdAt).toLocaleDateString() : '—'}</span>
+                  <span>Open tickets {service[cart.id]?.openOrders || 0}</span>
+                  <span>Today {rupee(service[cart.id]?.todayRevenue)}</span>
                   <span>Staff {cart.workers?.length || 0}</span>
                 </div>
               </div>
@@ -223,6 +258,12 @@ const CartOwnerDashboard = () => {
                 <button className="ro-ghost" type="button" onClick={() => navigate(`/restra-owner/orders/${cart.id}`)}>
                   <ClipboardList size={16} />
                   Orders
+                </button>
+                <button className="ro-ghost" type="button" onClick={() => navigate(`/restra-owner/tables/${cart.id}`)}>
+                  Tables
+                </button>
+                <button className="ro-ghost" type="button" onClick={() => setVenueOpen(cart, cart.status !== 'active')}>
+                  {cart.status === 'active' ? 'Pause' : 'Open'}
                 </button>
                 <button className="ro-ghost" type="button" onClick={() => navigate(`/restra-owner/staff/${cart.id}`)}>
                   <Users size={16} />

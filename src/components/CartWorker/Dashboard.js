@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ClipboardList, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import OwnerChrome from '../CartOwner/OwnerChrome';
+import { apiUrl } from '../../services/apiBase';
 
 const CartWorkerDashboard = () => {
   const { user, logout } = useAuth();
@@ -14,7 +15,7 @@ const CartWorkerDashboard = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetch('http://localhost:3000/cart/worker/carts', {
+        const response = await fetch(apiUrl('/cart/worker/carts'), {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },

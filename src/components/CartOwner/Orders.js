@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
+import { apiUrl, authHeaders } from '../../services/apiBase';
 
 const COLUMNS = [
   { key: 'new', title: 'New', statuses: ['pending'] },
@@ -40,7 +41,7 @@ const Orders = () => {
   });
 
   const loadOrders = async () => {
-    const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/orders`, {
+    const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/orders`), {
       headers: authHeaders(),
     });
     if (!response.ok) throw new Error('orders');
@@ -53,8 +54,8 @@ const Orders = () => {
     const load = async () => {
       try {
         const [orderRes, menuRes] = await Promise.all([
-          fetch(`http://localhost:3000/cart/owner/carts/${cartId}/orders`, { headers: authHeaders() }),
-          fetch(`http://localhost:3000/cart/owner/carts/${cartId}/menu-items`, { headers: authHeaders() }),
+          fetch(apiUrl(`/cart/owner/carts/${cartId}/orders`), { headers: authHeaders() }),
+          fetch(apiUrl(`/cart/owner/carts/${cartId}/menu-items`), { headers: authHeaders() }),
         ]);
         if (!orderRes.ok || !menuRes.ok) throw new Error('load');
         const orderData = await orderRes.json();
@@ -80,7 +81,7 @@ const Orders = () => {
   }, [cartId]);
 
   const advance = async (order, status) => {
-    const response = await fetch(`http://localhost:3000/cart/owner/orders/${order.id}/status`, {
+    const response = await fetch(apiUrl(`/cart/owner/orders/${order.id}/status`), {
       method: 'PUT',
       headers: authHeaders(),
       body: JSON.stringify({ status }),
@@ -116,7 +117,7 @@ const Orders = () => {
     setSaving(true);
     setFormError('');
     try {
-      const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/orders`, {
+      const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/orders`), {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
@@ -193,6 +194,7 @@ const Orders = () => {
                       <span>{rupee(order.finalAmount)}</span>
                     </header>
                     <p>{order.customerName || 'Guest'}{order.tableNumber ? ` · Table ${order.tableNumber}` : ''}</p>
+                    {order.specialInstructions && <p>{order.specialInstructions}</p>}
                     <ul>
                       {(order.items || []).map((item) => (
                         <li key={item.id}>{item.quantity} × {item.itemName}</li>

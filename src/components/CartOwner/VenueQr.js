@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
+import { apiUrl } from '../../services/apiBase';
 
 const VenueQr = () => {
   const { cartId } = useParams();
@@ -18,7 +19,7 @@ const VenueQr = () => {
     const load = async () => {
       try {
         const [venueRes, qr] = await Promise.all([
-          fetch(`http://localhost:3000/cart/owner/carts/${cartId}`, {
+          fetch(apiUrl(`/cart/owner/carts/${cartId}`), {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
           }),
           QRCode.toDataURL(guestUrl, { margin: 1, width: 480, color: { dark: '#1a120c', light: '#f5ecdd' } }),

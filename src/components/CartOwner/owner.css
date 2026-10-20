@@ -101,7 +101,7 @@
 
 .ro-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 14px;
   margin-bottom: 18px;
 }
@@ -264,7 +264,12 @@
 }
 .ro-icon:hover { color: var(--cream); border-color: var(--brass); }
 .ro-icon.danger:hover { color: var(--err); border-color: var(--err); }
-.ro-actions-row { display: flex; gap: 8px; }
+.ro-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ro-table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding: 14px; }
+.ro-table-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.ro-table-card img { width: 100%; border-radius: 10px; background: var(--cream); }
+.ro-table-card h3 { margin: 10px 0 0; font-size: 16px; }
+.ro-table-card p { margin: 2px 0 8px; color: var(--muted); font-size: 13px; }
 .ro-price { color: var(--brass-hi); font-weight: 700; }
 .ro-check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 .ro-check input { width: 16px; height: 16px; min-height: 0; accent-color: var(--brass); }
@@ -387,6 +392,7 @@
   font-weight: 500;
   font-size: 32px;
 }
+.ro-guest-order textarea { width: 100%; min-height: 72px; }
 .ro-guest-order ul { margin: 0; padding-left: 18px; color: var(--muted); }
 .ro-guest-order .ro-gold { justify-self: start; }
 

@@ -1,28 +1,49 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import './owner.css';
+import { apiUrl } from '../../services/apiBase';
 
 const rupee = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
+const STATUS_COPY = {
+  pending: 'With the kitchen',
+  accepted: 'Accepted',
+  cooking: 'Cooking',
+  cooking_done: 'Cooked',
+  ready_for_pickup: 'Ready',
+  delivered: 'Served',
+  completed: 'Served',
+  cancelled: 'Cancelled',
+};
+
 const GuestOrder = () => {
   const { cartId } = useParams();
+  const [searchParams] = useSearchParams();
+  const tableFromLink = searchParams.get('table') || '';
   const [venue, setVenue] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [lines, setLines] = useState({});
   const [categoryId, setCategoryId] = useState('all');
   const [name, setName] = useState('');
-  const [tableNumber, setTableNumber] = useState('');
+  const [tableNumber, setTableNumber] = useState(tableFromLink);
+  const [note, setNote] = useState('');
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState('');
   const [placed, setPlaced] = useState(null);
+  const [view, setView] = useState('menu');
+  const [bill, setBill] = useState(null);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/cart/public/venues/${cartId}`);
+        const response = await fetch(apiUrl(`/cart/public/venues/${cartId}`));
         if (!response.ok) throw new Error('venue');
-        setVenue(await response.json());
+        const data = await response.json();
+        setVenue(data);
+        if (!tableFromLink && data.tables?.length === 1) {
+          setTableNumber(data.tables[0].label);
+        }
       } catch (err) {
         setError('This menu is not available.');
       } finally {
@@ -30,7 +51,39 @@ const GuestOrder = () => {
       }
     };
     load();
-  }, [cartId]);
+  }, [cartId, tableFromLink]);
+
+  const activeTable = tableFromLink || tableNumber;
+
+  const loadBill = async () => {
+    if (!activeTable) {
+      setBill(null);
+      return;
+    }
+    const response = await fetch(apiUrl(`/cart/public/venues/${cartId}/bill?table=${encodeURIComponent(activeTable)}`));
+    if (!response.ok) return;
+    setBill(await response.json());
+  };
+
+  useEffect(() => {
+    loadBill().catch(() => {});
+    if (!activeTable) return undefined;
+    const timer = setInterval(() => {
+      loadBill().catch(() => {});
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [cartId, activeTable]);
+
+  useEffect(() => {
+    if (!placed?.orderNumber || ['delivered', 'completed', 'cancelled'].includes(placed.status)) return undefined;
+    const timer = setInterval(async () => {
+      const response = await fetch(apiUrl(`/cart/public/orders/${placed.orderNumber}/status`));
+      if (!response.ok) return;
+      const data = await response.json();
+      setPlaced((current) => (current ? { ...current, status: data.status } : current));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [placed?.orderNumber, placed?.status]);
 
   const dishes = useMemo(() => {
     const items = venue?.menuItems || [];
@@ -59,23 +112,27 @@ const GuestOrder = () => {
     setSending(true);
     setFormError('');
     try {
-      const response = await fetch('http://localhost:3000/cart/public/orders', {
+      const response = await fetch(apiUrl('/cart/public/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cartId: Number(cartId),
           customerName: name,
           tableNumber,
+          specialInstructions: note,
           items: basket.map((item) => ({ menuItemId: item.id, quantity: item.quantity })),
         }),
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFormError(body.message || 'The kitchen did not receive that.');
+        setFormError(body.message || body.detail || 'The kitchen did not receive that.');
         return;
       }
       setPlaced(body);
       setLines({});
+      setNote('');
+      setView('bill');
+      loadBill().catch(() => {});
     } catch (err) {
       setFormError('The kitchen did not receive that.');
     } finally {
@@ -91,6 +148,9 @@ const GuestOrder = () => {
     <div className="ro">
       <header className="ro-nav">
         <Link className="ro-logo" to="/">Servya <i>◆</i></Link>
+        <button className="ro-ghost" type="button" onClick={() => setView(view === 'bill' ? 'menu' : 'bill')}>
+          {view === 'bill' ? 'Menu' : `Your bill${bill ? ` ${rupee(bill.bill)}` : ''}`}
+        </button>
       </header>
       <main className="ro-main">
         {error && <p className="ro-error">{error}</p>}
@@ -98,11 +158,44 @@ const GuestOrder = () => {
           <>
             <div className="ro-head">
               <div>
-                <p className="ro-kicker">Menu</p>
-                <h1>{venue.name}</h1>
-                <p>{venue.location || venue.description || 'Order from your table. The kitchen sees it right away.'}</p>
+                <p className="ro-kicker">{view === 'bill' ? 'Bill' : 'Menu'}</p>
+                <h1>{view === 'bill' ? 'Your orders.' : venue.name}</h1>
+                <p>{view === 'bill' ? 'Everything sent from this table today, and what it comes to.' : (venue.location || venue.description || 'Order from your table. The kitchen sees it right away.')}</p>
               </div>
             </div>
+            {view === 'bill' ? (
+              <section className="ro-list">
+                <h2>Table {activeTable || '—'} · {rupee(bill?.bill || 0)}</h2>
+                {!activeTable && (
+                  <div className="ro-empty">
+                    <h3>Choose your table.</h3>
+                    <p>The bill is the orders sent from that table today.</p>
+                  </div>
+                )}
+                {activeTable && (bill?.orders || []).length === 0 && (
+                  <div className="ro-empty">
+                    <h3>Nothing on this table yet.</h3>
+                    <p>Dishes you send show up here with the running total.</p>
+                  </div>
+                )}
+                {(bill?.orders || []).map((order) => (
+                  <article className="ro-row" key={order.id}>
+                    <div>
+                      <div className="ro-title">
+                        <h3>{order.orderNumber}</h3>
+                        <span className={`ro-pill ${order.status === 'cancelled' ? 'suspended' : order.status === 'pending' ? 'pending' : 'active'}`}>
+                          {STATUS_COPY[order.status] || order.status}
+                        </span>
+                      </div>
+                      <p>{(order.items || []).map((item) => `${item.quantity} × ${item.name}`).join(', ')}</p>
+                      {order.specialInstructions && <p>{order.specialInstructions}</p>}
+                    </div>
+                    <strong className="ro-price">{rupee(order.finalAmount)}</strong>
+                  </article>
+                ))}
+              </section>
+            ) : (
+            <>
             <div className="ro-tabs">
               <button type="button" className={categoryId === 'all' ? 'on' : ''} onClick={() => setCategoryId('all')}>All</button>
               {(venue.categories || []).map((category) => (
@@ -139,7 +232,7 @@ const GuestOrder = () => {
               {placed ? (
                 <div>
                   <h2>Order sent.</h2>
-                  <p>Ticket {placed.orderNumber} is with the kitchen.</p>
+                  <p>Ticket {placed.orderNumber}. {STATUS_COPY[placed.status] || 'With the kitchen'}.</p>
                   <button className="ro-ghost" type="button" onClick={() => setPlaced(null)}>Order something else</button>
                 </div>
               ) : (
@@ -147,8 +240,20 @@ const GuestOrder = () => {
                   <h2>Your table <span>{basket.length ? rupee(total) : ''}</span></h2>
                   <div className="ro-split two">
                     <input aria-label="Your name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" />
-                    <input aria-label="Table number" value={tableNumber} onChange={(event) => setTableNumber(event.target.value)} placeholder="Table number" />
+                    {tableFromLink ? (
+                      <input aria-label="Table number" value={tableFromLink} readOnly />
+                    ) : (venue.tables || []).length > 0 ? (
+                      <select aria-label="Table number" value={tableNumber} onChange={(event) => setTableNumber(event.target.value)}>
+                        <option value="">Choose a table</option>
+                        {venue.tables.map((table) => (
+                          <option key={table.id} value={table.label}>Table {table.label}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input aria-label="Table number" value={tableNumber} onChange={(event) => setTableNumber(event.target.value)} placeholder="Table number" />
+                    )}
                   </div>
+                  <textarea aria-label="Note for the kitchen" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Note for the kitchen" />
                   {basket.length > 0 && (
                     <ul>
                       {basket.map((item) => (
@@ -163,6 +268,8 @@ const GuestOrder = () => {
                 </>
               )}
             </form>
+            </>
+            )}
           </>
         )}
       </main>

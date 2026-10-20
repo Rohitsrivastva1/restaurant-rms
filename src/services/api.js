@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_BASE } from './apiBase';
 
-// Create axios instance with base configuration
+// Schoolabe Servya API: /api/v1/rms
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000',
+  baseURL: API_BASE,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

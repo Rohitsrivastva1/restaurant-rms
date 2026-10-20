@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import OwnerChrome from '../CartOwner/OwnerChrome';
+import { apiUrl } from '../../services/apiBase';
 
 const COLUMNS = [
   { key: 'new', title: 'New', statuses: ['pending'] },
@@ -33,7 +34,7 @@ const WorkerOrders = () => {
   });
 
   const loadOrders = async () => {
-    const response = await fetch(`http://localhost:3000/cart/worker/carts/${cartId}/orders`, {
+    const response = await fetch(apiUrl(`/cart/worker/carts/${cartId}/orders`), {
       headers: headers(),
     });
     if (!response.ok) throw new Error('orders');
@@ -64,7 +65,7 @@ const WorkerOrders = () => {
   }, [cartId]);
 
   const advance = async (order, status) => {
-    const response = await fetch(`http://localhost:3000/cart/worker/orders/${order.id}/status`, {
+    const response = await fetch(apiUrl(`/cart/worker/orders/${order.id}/status`), {
       method: 'PUT',
       headers: headers(),
       body: JSON.stringify({ status }),
@@ -122,6 +123,7 @@ const WorkerOrders = () => {
                       <span>{rupee(order.finalAmount)}</span>
                     </header>
                     <p>{order.customerName || 'Guest'}{order.tableNumber ? ` · Table ${order.tableNumber}` : ''}</p>
+                    {order.specialInstructions && <p>{order.specialInstructions}</p>}
                     <ul>
                       {(order.items || []).map((item) => (
                         <li key={item.id}>{item.quantity} × {item.itemName}</li>

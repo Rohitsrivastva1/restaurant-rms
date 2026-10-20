@@ -65,6 +65,7 @@ import ExcelUpload from './components/CartOwner/ExcelUpload';
 import CartOrders from './components/CartOwner/Orders';
 import CartStaff from './components/CartOwner/Staff';
 import VenueQr from './components/CartOwner/VenueQr';
+import VenueTables from './components/CartOwner/Tables';
 import GuestOrder from './components/CartOwner/GuestOrder';
 
 // Cart Worker Components
@@ -99,6 +100,7 @@ function AppContent() {
           <Route path="/customer" element={<MenuScreen />} />
           <Route path="/order" element={<MenuScreen />} />
           <Route path="/menu" element={<MenuScreen />} />
+          <Route path="/guest/seat/:seatKey" element={<GuestOrder />} />
           <Route path="/guest/:cartId" element={<GuestOrder />} />
           <Route path="/samples" element={<CafeSampleIndex />} />
           <Route path="/samples/:variant" element={<CafeSample />} />
@@ -285,6 +287,7 @@ function AppContent() {
           <Route path="/restra-owner/menu/:cartId" element={<CartMenuManagement />} />
           <Route path="/restra-owner/orders/:cartId" element={<CartOrders />} />
           <Route path="/restra-owner/staff/:cartId" element={<CartStaff />} />
+          <Route path="/restra-owner/tables/:cartId" element={<VenueTables />} />
           <Route path="/restra-owner/qr/:cartId" element={<VenueQr />} />
           <Route path="/restra-owner/excel-upload/:cartId" element={<ExcelUpload />} />
           <Route path="/cart-owner" element={<Navigate to="/restra-owner" replace />} />

@@ -14,6 +14,7 @@ import {
   Edit
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { apiUrl } from '../../services/apiBase';
 
 const ExcelUpload = () => {
   const { cartId } = useParams();
@@ -203,7 +204,7 @@ const ExcelUpload = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/menu-items/bulk-import`, {
+      const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/menu-items/bulk-import`), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

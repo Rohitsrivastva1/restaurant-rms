@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 const LINKS = [
   ['menu', 'Menu'],
   ['orders', 'Orders'],
+  ['tables', 'Tables'],
   ['staff', 'Staff'],
   ['qr', 'QR'],
 ];

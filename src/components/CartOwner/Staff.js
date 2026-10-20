@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
+import { apiUrl } from '../../services/apiBase';
 
 const Staff = () => {
   const { cartId } = useParams();
@@ -23,7 +24,7 @@ const Staff = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/workers`, {
+        const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/workers`), {
           headers: authHeaders(),
         });
         if (!response.ok) throw new Error('staff');
@@ -48,7 +49,7 @@ const Staff = () => {
     setSaving(true);
     setFormError('');
     try {
-      const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/workers`, {
+      const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/workers`), {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify(form),
@@ -70,7 +71,7 @@ const Staff = () => {
 
   const removeStaff = async (worker) => {
     if (!window.confirm(`Remove ${worker.name || 'this person'} from the venue?`)) return;
-    const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/workers/${worker.userId}`, {
+    const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/workers/${worker.userId}`), {
       method: 'DELETE',
       headers: authHeaders(),
     });

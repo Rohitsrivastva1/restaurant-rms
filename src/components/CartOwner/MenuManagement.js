@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Upload } from 'lucide-react';
 import OwnerChrome from './OwnerChrome';
 import VenueNav from './VenueNav';
+import { apiUrl } from '../../services/apiBase';
 
 const MenuManagement = () => {
   const { cartId } = useParams();
@@ -51,7 +52,7 @@ const MenuManagement = () => {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/categories`, {
+      const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/categories`), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -73,7 +74,7 @@ const MenuManagement = () => {
   const fetchMenuItems = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/menu-items`, {
+      const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/menu-items`), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -99,8 +100,8 @@ const MenuManagement = () => {
     try {
       const token = localStorage.getItem('token');
       const url = editingCategory 
-        ? `http://localhost:3000/cart/owner/carts/${cartId}/categories/${editingCategory.id}`
-        : `http://localhost:3000/cart/owner/carts/${cartId}/categories`;
+        ? apiUrl(`/cart/owner/carts/${cartId}/categories/${editingCategory.id}`)
+        : apiUrl(`/cart/owner/carts/${cartId}/categories`);
       
       const method = editingCategory ? 'PUT' : 'POST';
       
@@ -139,8 +140,8 @@ const MenuManagement = () => {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:3000/cart/owner/carts/${cartId}/menu-items/${editingItem.id}`
-        : `http://localhost:3000/cart/owner/carts/${cartId}/menu-items`;
+        ? apiUrl(`/cart/owner/carts/${cartId}/menu-items/${editingItem.id}`)
+        : apiUrl(`/cart/owner/carts/${cartId}/menu-items`);
       
       const method = editingItem ? 'PUT' : 'POST';
       
@@ -188,7 +189,7 @@ const MenuManagement = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/categories/${categoryId}`, {
+      const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/categories/${categoryId}`), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -212,7 +213,7 @@ const MenuManagement = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/cart/owner/carts/${cartId}/menu-items/${itemId}`, {
+      const response = await fetch(apiUrl(`/cart/owner/carts/${cartId}/menu-items/${itemId}`), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

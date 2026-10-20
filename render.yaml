@@ -1,0 +1,22 @@
+# Servya frontend — Render Static Site
+# Dashboard: New → Blueprint → connect this repo, or create a Static Site manually.
+services:
+  - type: web
+    name: servya-web
+    runtime: static
+    rootDir: .
+    buildCommand: npm ci && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://api.schoolabe.com/api/v1/rms
+      - key: REACT_APP_ENVIRONMENT
+        value: production
+      - key: REACT_APP_DEBUG_MODE
+        value: "false"
+      - key: CI
+        value: "false"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
