@@ -6,6 +6,7 @@ import VenueNav from './VenueNav';
 import { RoPageSkeleton, RoRefreshBar, RoSendSpinner } from './RoSkeleton';
 import { apiUrl } from '../../services/apiBase';
 import { cacheGet, cacheSet } from '../../utils/fastCache';
+import { SafeText } from '../../utils/safeText';
 import {
   COLUMNS,
   NEXT,
@@ -240,11 +241,18 @@ const Orders = () => {
                       <span className="ro-pill active">{STATUS_COPY[order.status] || order.status}</span>
                       {age && <span className={`ro-age ${ticketAgeClass(order.createdAt)}`}>{age}</span>}
                     </div>
-                    <p>{order.customerName || 'Guest'}{order.tableNumber ? ` · Table ${order.tableNumber}` : ''}</p>
-                    {order.specialInstructions && <p>{order.specialInstructions}</p>}
+                    <p>
+                      <SafeText value={order.customerName} fallback="Guest" />
+                      {order.tableNumber ? ` · Table ${order.tableNumber}` : ''}
+                    </p>
+                    {order.specialInstructions ? (
+                      <p><SafeText value={order.specialInstructions} /></p>
+                    ) : null}
                     <ul>
                       {(order.items || []).map((item) => (
-                        <li key={item.id}>{item.quantity} × {item.itemName}</li>
+                        <li key={item.id}>
+                          {item.quantity} × <SafeText value={item.itemName} fallback="Item" />
+                        </li>
                       ))}
                     </ul>
                     <div className="ro-ticket-actions">

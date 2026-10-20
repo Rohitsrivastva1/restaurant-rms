@@ -425,6 +425,28 @@
   font-size: 13px;
   color: var(--muted);
 }
+.ro-menu-error {
+  text-align: center;
+  gap: 12px;
+  display: grid;
+  justify-items: center;
+  padding: 48px 20px;
+}
+.ro-menu-error .ro-gold { min-width: 160px; }
+.ro-banner-warn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(230, 201, 138, 0.45);
+  background: rgba(61, 48, 32, 0.85);
+  color: #f0e6d4;
+  font-size: 14px;
+}
 .ro-helper { margin: 0; color: #d4d0c8; font-size: 14px; }
 .ro-muted { color: #c4bfb6; font-size: 14px; }
 .ro-field { display: grid; gap: 6px; min-width: 0; }

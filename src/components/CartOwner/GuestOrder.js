@@ -4,12 +4,15 @@ import './owner.css';
 import { RoPageSkeleton, RoRefreshBar, RoSendSpinner } from './RoSkeleton';
 import { apiUrl } from '../../services/apiBase';
 import { cacheGet, cacheSet } from '../../utils/fastCache';
+import { plainText, SafeText } from '../../utils/safeText';
 import {
   GUEST_STATUS_COPY,
   loadGuestOrderNumbers,
   rememberGuestOrderNumber,
   rupee,
 } from '../../utils/orderBoard';
+
+const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
 const GuestOrder = () => {
   const { cartId: cartIdParam, seatKey } = useParams();
@@ -22,6 +25,7 @@ const GuestOrder = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(!cachedVenue);
   const [refreshing, setRefreshing] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [lines, setLines] = useState({});
   const [categoryId, setCategoryId] = useState('all');
   const [name, setName] = useState('');
@@ -36,12 +40,17 @@ const GuestOrder = () => {
   const myOrdersKey = myOrders.join('|');
 
   useEffect(() => {
-    document.title = venue?.name ? `${venue.name} · Servya` : 'Menu · Servya';
+    document.title = venue?.name ? `${plainText(venue.name, 'Menu')} · Servya` : 'Menu · Servya';
   }, [venue?.name]);
 
-  useEffect(() => {
-    const load = async () => {
-      if (cachedVenue) setRefreshing(true);
+  const loadMenu = useCallback(async ({ soft = false, attempts = 3 } = {}) => {
+    if (soft) setRefreshing(true);
+    else setLoading(true);
+    setRetrying(true);
+    setError('');
+
+    let lastError = null;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
       try {
         if (seatKey) {
           const seatRes = await fetch(apiUrl(`/cart/public/seats/${seatKey}/enter`), {
@@ -49,31 +58,52 @@ const GuestOrder = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({}),
           });
-          if (!seatRes.ok) throw new Error('seat');
+          if (!seatRes.ok) throw new Error(`seat-${seatRes.status}`);
           const seatData = await seatRes.json();
+          if (!seatData?.venue) throw new Error('seat-empty');
           setVenue(seatData.venue);
           setCartId(String(seatData.venue?.id || ''));
           if (seatData.table?.label) setTableNumber(seatData.table.label);
           cacheSet(cacheKey, seatData.venue);
-          return;
+          setError('');
+          lastError = null;
+          break;
         }
+
         const response = await fetch(apiUrl(`/cart/public/venues/${cartIdParam}`));
-        if (!response.ok) throw new Error('venue');
+        if (!response.ok) throw new Error(`venue-${response.status}`);
         const data = await response.json();
+        if (!data || !Array.isArray(data.menuItems)) throw new Error('venue-empty');
         setVenue(data);
         setCartId(String(cartIdParam));
         cacheSet(cacheKey, data);
         if (!tableFromLink && data.tables?.length === 1) {
           setTableNumber(data.tables[0].label);
         }
+        setError('');
+        lastError = null;
+        break;
       } catch (err) {
-        if (!cachedVenue) setError('This menu is not available.');
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
+        lastError = err;
+        if (attempt < attempts) await sleep(350 * attempt);
       }
-    };
-    load();
+    }
+
+    if (lastError) {
+      // Keep whatever menu we already painted; only hard-fail when empty.
+      setVenue((current) => current || cachedVenue || null);
+      setError('Menu load nahi hua. Network busy ho sakta hai — dubara try karein.');
+    }
+
+    setLoading(false);
+    setRefreshing(false);
+    setRetrying(false);
+  }, [seatKey, cartIdParam, tableFromLink, cacheKey, cachedVenue]);
+
+  useEffect(() => {
+    loadMenu({ soft: Boolean(cachedVenue) }).catch(() => {});
+    // Initial load only when route identity changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartIdParam, seatKey, tableFromLink, cacheKey]);
 
   useEffect(() => {
@@ -162,9 +192,9 @@ const GuestOrder = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cartId: Number(cartId),
-          customerName: name,
+          customerName: plainText(name),
           tableNumber: tableFromLink || tableNumber,
-          specialInstructions: note,
+          specialInstructions: plainText(note),
           items: basket.map((item) => ({ menuItemId: item.id, quantity: item.quantity })),
         }),
       });
@@ -193,6 +223,31 @@ const GuestOrder = () => {
     return <RoPageSkeleton title="Menu." lead="Loading dishes for your table…" variant="menu" />;
   }
 
+  if (!venue && error) {
+    return (
+      <div className="ro">
+        <header className="ro-nav">
+          <Link className="ro-logo" to="/">Servya <i>◆</i></Link>
+        </header>
+        <main className="ro-main">
+          <div className="ro-empty ro-menu-error" role="alert">
+            <h3>Menu load nahi hua</h3>
+            <p>Server busy ho sakta hai. Thoda wait karke Try again dabayein.</p>
+            <button
+              className="ro-gold is-busy"
+              type="button"
+              disabled={retrying}
+              aria-busy={retrying}
+              onClick={() => loadMenu({ soft: false, attempts: 3 })}
+            >
+              {retrying ? <><RoSendSpinner />Trying…</> : 'Try again'}
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="ro">
       <header className="ro-nav">
@@ -203,17 +258,29 @@ const GuestOrder = () => {
       </header>
       <main className="ro-main">
         <RoRefreshBar show={refreshing} label="Updating menu…" />
-        {error && <p className="ro-error">{error}</p>}
+        {error && venue && (
+          <div className="ro-banner-warn" role="status">
+            <span>Menu refresh fail hua — purana menu dikha rahe hain.</span>
+            <button className="ro-ghost" type="button" disabled={retrying} onClick={() => loadMenu({ soft: true, attempts: 3 })}>
+              {retrying ? 'Trying…' : 'Try again'}
+            </button>
+          </div>
+        )}
         {venue && (
           <>
             <div className="ro-head">
               <div>
                 <p className="ro-kicker">{view === 'bill' ? 'Your orders' : 'Menu'}</p>
-                <h1>{view === 'bill' ? 'Your orders.' : venue.name}</h1>
+                <h1>{view === 'bill' ? 'Your orders.' : <SafeText value={venue.name} fallback="Menu" />}</h1>
                 <p>
                   {view === 'bill'
                     ? 'Only orders from this phone. Staff can see the full table bill.'
-                    : (venue.location || venue.description || 'Order from your table. The kitchen sees it right away.')}
+                    : (
+                      <SafeText
+                        value={venue.location || venue.description}
+                        fallback="Order from your table. The kitchen sees it right away."
+                      />
+                    )}
                 </p>
               </div>
             </div>

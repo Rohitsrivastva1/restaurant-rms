@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { safeHtmlText } from './safeText';
 
 export const COLUMNS = [
   { key: 'new', title: 'New', statuses: ['pending'] },
@@ -65,12 +66,7 @@ export const ticketAgeClass = (createdAt) => {
   return minutes > 10 ? 'ro-age-hot' : '';
 };
 
-const escapeHtml = (value) =>
-  String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+const escapeHtml = (value) => safeHtmlText(value, '');
 
 const formatWhen = (value) => {
   const date = value ? new Date(value) : new Date();
