@@ -12,7 +12,6 @@ import {
   countActiveTickets,
   countOpenOrders,
   printBill,
-  printKot,
   printOrderBill,
   rupee,
   ticketAge,
@@ -318,7 +317,6 @@ const WorkerOrders = () => {
                           {next.label}
                         </button>
                       )}
-                      <button className="ro-ghost" type="button" onClick={() => printKot(order, venue)}>KOT</button>
                       <button className="ro-ghost" type="button" onClick={() => printOrderBill(order, venue)}>Bill</button>
                       {column.key !== 'done' && order.status !== 'cancelled' && (
                         <button className="ro-ghost" type="button" onClick={() => advance(order, 'cancelled')}>

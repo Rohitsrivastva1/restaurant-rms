@@ -12,7 +12,6 @@ import {
   STATUS_COPY,
   countActiveTickets,
   countOpenOrders,
-  printKot,
   printOrderBill,
   rupee,
   ticketAge,
@@ -254,7 +253,6 @@ const Orders = () => {
                           {next.label}
                         </button>
                       )}
-                      <button className="ro-ghost" type="button" onClick={() => printKot(order, venue)}>KOT</button>
                       <button className="ro-ghost" type="button" onClick={() => printOrderBill(order, venue)}>Bill</button>
                       {column.key !== 'done' && order.status !== 'cancelled' && (
                         <button className="ro-ghost" type="button" onClick={() => advance(order, 'cancelled')}>
