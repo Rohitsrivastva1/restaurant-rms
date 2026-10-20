@@ -1,8 +1,11 @@
 # Servya — Render Static Site (CDN). Not a Web Service.
 # Dashboard: New → Static Site  OR  New → Blueprint (this file)
+# SPA: without the rewrite below, /restra-owner etc. 404 on refresh.
+# If this site was created in the Dashboard (not Blueprint), add the same rule under
+# Settings → Redirects/Rewrites: Source /*  Destination /index.html  Action Rewrite
 services:
   - type: web
-    name: servya-web
+    name: restaurant-rms-1
     runtime: static
     branch: feat/premium-home
     buildCommand: npm install && CI=false npm run build

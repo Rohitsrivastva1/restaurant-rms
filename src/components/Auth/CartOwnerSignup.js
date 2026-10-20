@@ -83,12 +83,8 @@ const CartOwnerSignup = () => {
       });
       
       if (result.success) {
-        setSuccess(`Welcome, ${result.user.name}. Your venue account is ready.`);
-        
-        // Redirect to cart owner dashboard after a short delay
-        setTimeout(() => {
-          navigate('/restra-owner');
-        }, 2000);
+        setSuccess(`Welcome, ${result.user?.name || 'there'}. Your venue account is ready.`);
+        navigate('/restra-owner', { replace: true });
       } else {
         setError(result.error || 'Registration failed. Please try again.');
       }

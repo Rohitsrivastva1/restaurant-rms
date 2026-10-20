@@ -65,7 +65,7 @@ const Login = () => {
       });
       
       if (result.success) {
-        setSuccess(`Welcome back, ${result.user.name}.`);
+        setSuccess(`Welcome back, ${result.user?.name || 'there'}.`);
         const redirectMap = {
           admin: '/admin',
           manager: '/admin',
@@ -74,8 +74,8 @@ const Login = () => {
           cart_owner: '/restra-owner',
           cart_worker: '/restra-worker',
         };
-        const redirectPath = redirectMap[result.user.role] || '/admin';
-        setTimeout(() => navigate(redirectPath), 700);
+        const redirectPath = redirectMap[result.user?.role] || '/admin';
+        navigate(redirectPath, { replace: true });
       } else {
         setError(result.error || 'Login failed. Please check your credentials.');
       }

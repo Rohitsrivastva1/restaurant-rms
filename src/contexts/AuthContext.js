@@ -14,6 +14,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  // Only true during first localStorage hydrate — never during login/signup
+  // (toggling it unmounts <Router> and cancels post-auth redirects).
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -33,49 +35,34 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       setError('');
-      setLoading(true);
       
       const response = await authAPI.login(credentials);
       const { success, token: newToken, user: userData } = response.data;
       
       if (success) {
-        // Store in localStorage
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Update state
         setToken(newToken);
         setUser(userData);
-        
-        console.log('AuthContext: User logged in successfully', userData); // Debug log
-        console.log('AuthContext: Token set', newToken); // Debug log
-        
         return { success: true, user: userData };
-      } else {
-        return { success: false, error: 'Login failed' };
       }
+      return { success: false, error: 'Login failed' };
     } catch (error) {
       const errorMessage = apiUtils.handleError(error);
       setError(errorMessage);
       return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
     }
   };
 
   const register = async (userData) => {
     try {
       setError('');
-      setLoading(true);
       
       const response = await authAPI.register(userData);
       const { token: newToken, user: newUser } = response.data;
       
-      // Store in localStorage
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(newUser));
-      
-      // Update state
       setToken(newToken);
       setUser(newUser);
       
@@ -84,75 +71,56 @@ export const AuthProvider = ({ children }) => {
       const errorMessage = apiUtils.handleError(error);
       setError(errorMessage);
       return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
     }
   };
 
   const registerSuperAdmin = async (userData) => {
     try {
       setError('');
-      setLoading(true);
       
       const response = await authAPI.registerSuperAdmin(userData);
       const { success, token: newToken, user: newUser } = response.data;
       
       if (success) {
-        // Store in localStorage
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(newUser));
-        
-        // Update state
         setToken(newToken);
         setUser(newUser);
-        
         return { success: true, user: newUser };
-      } else {
-        return { success: false, error: 'Registration failed' };
       }
+      return { success: false, error: 'Registration failed' };
     } catch (error) {
       const errorMessage = apiUtils.handleError(error);
       setError(errorMessage);
       return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
     }
   };
 
   const registerCartOwner = async (userData) => {
     try {
       setError('');
-      setLoading(true);
       
       const response = await authAPI.registerCartOwner(userData);
       const { success, token: newToken, user: newUser } = response.data;
       
       if (success) {
-        // Store in localStorage
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(newUser));
-        
-        // Update state
         setToken(newToken);
         setUser(newUser);
-        
         return { success: true, user: newUser };
-      } else {
-        return { success: false, error: 'Registration failed' };
       }
+      return { success: false, error: 'Registration failed' };
     } catch (error) {
       const errorMessage = apiUtils.handleError(error);
       setError(errorMessage);
       return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
     }
   };
 
   const registerRestaurant = async (restaurantData) => {
     try {
       setError('');
-      setLoading(true);
       
       const response = await authAPI.registerRestaurant(restaurantData);
       return { success: true, data: response.data };
@@ -160,8 +128,6 @@ export const AuthProvider = ({ children }) => {
       const errorMessage = apiUtils.handleError(error);
       setError(errorMessage);
       return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
     }
   };
 
