@@ -256,13 +256,13 @@ const Orders = () => {
                       ))}
                     </ul>
                     <div className="ro-ticket-actions">
-                      {column.key !== 'done' && next && (
+                      {column.key !== 'served' && next && (
                         <button className="ro-gold" type="button" onClick={() => advance(order, next.status)}>
                           {next.label}
                         </button>
                       )}
                       <button className="ro-ghost" type="button" onClick={() => printOrderBill(order, venue)}>Bill</button>
-                      {column.key !== 'done' && order.status !== 'cancelled' && (
+                      {column.key !== 'served' && order.status !== 'cancelled' && (
                         <button className="ro-ghost" type="button" onClick={() => advance(order, 'cancelled')}>
                           Cancel
                         </button>

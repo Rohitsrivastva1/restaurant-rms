@@ -54,8 +54,7 @@ import LiveOrders from './components/Chef/LiveOrders';
 import OrderHistory from './components/Chef/OrderHistory';
 import ChefProfile from './components/Chef/ChefProfile';
 
-// Customer Components
-import MenuScreen from './components/Customer/MenuScreen';
+// Customer Components (legacy MenuScreen removed — used localhost:3000 APIs)
 import { CafeSample, CafeSampleIndex } from './components/CafeSample/CafeSample';
 
 // Cart Owner Components

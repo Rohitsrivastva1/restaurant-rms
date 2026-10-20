@@ -33,6 +33,7 @@ const GuestOrder = () => {
   const [note, setNote] = useState('');
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState('');
+  const [sendIdempotencyKey, setSendIdempotencyKey] = useState('');
   const [placed, setPlaced] = useState(null);
   const [view, setView] = useState('menu');
   const [bill, setBill] = useState(null);
@@ -179,29 +180,39 @@ const GuestOrder = () => {
     }
     setSending(true);
     setFormError('');
-    const optimistic = {
-      orderNumber: '…',
-      status: 'pending',
-      finalAmount: total,
-      items: basket.map((item) => ({ name: item.name, quantity: item.quantity })),
-    };
-    setPlaced(optimistic);
+    // Keep cart until success. Reuse the same key across retries after timeout.
+    const idempotencyKey = sendIdempotencyKey || (
+      (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `guest-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+    );
+    if (!sendIdempotencyKey) setSendIdempotencyKey(idempotencyKey);
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 15_000);
     try {
       const response = await fetch(apiUrl('/cart/public/orders'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey,
+        },
+        signal: controller.signal,
         body: JSON.stringify({
           cartId: Number(cartId),
           customerName: plainText(name),
           tableNumber: tableFromLink || tableNumber,
           specialInstructions: plainText(note),
+          idempotencyKey,
           items: basket.map((item) => ({ menuItemId: item.id, quantity: item.quantity })),
         }),
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setPlaced(null);
-        setFormError(body.message || body.detail || 'The kitchen did not receive that.');
+        setFormError(
+          body.message
+          || (typeof body.detail === 'string' ? body.detail : null)
+          || 'The kitchen did not receive that. Your cart is still here — try again.'
+        );
         return;
       }
       rememberGuestOrderNumber(cartId, body.orderNumber);
@@ -209,12 +220,18 @@ const GuestOrder = () => {
       setPlaced(body);
       setLines({});
       setNote('');
+      setSendIdempotencyKey('');
       setView('bill');
       loadBill().catch(() => {});
     } catch (err) {
-      setPlaced(null);
-      setFormError('The kitchen did not receive that.');
+      const timedOut = err?.name === 'AbortError';
+      setFormError(
+        timedOut
+          ? 'Send timed out (15s). Cart is still here — tap Send again (no duplicate).'
+          : 'The kitchen did not receive that. Your cart is still here — try again.'
+      );
     } finally {
+      window.clearTimeout(timer);
       setSending(false);
     }
   };

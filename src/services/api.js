@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { API_BASE } from './apiBase';
 
-// Schoolabe Servya API: /api/v1/rms
+/**
+ * Auth + cart helpers used by Servya live paths.
+ * Legacy Admin/Chef/SuperAdmin modules still import menu/orders stubs below —
+ * those routes are not on the RMS API; prefer CartOwner/CartWorker + apiUrl().
+ */
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 10000,

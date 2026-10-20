@@ -1,42 +1,36 @@
 import QRCode from 'qrcode';
 import { safeHtmlText } from './safeText';
 
+/** Shared status vocabulary for staff + guest (BUG-013). */
 export const COLUMNS = [
   { key: 'new', title: 'New', statuses: ['pending'] },
-  { key: 'kitchen', title: 'Kitchen', statuses: ['accepted', 'cooking', 'cooking_done'] },
+  { key: 'accepted', title: 'Accepted', statuses: ['accepted'] },
+  { key: 'cooking', title: 'Cooking', statuses: ['cooking', 'cooking_done'] },
   { key: 'ready', title: 'Ready', statuses: ['ready_for_pickup'] },
-  { key: 'done', title: 'Done', statuses: ['delivered', 'completed'] },
+  { key: 'served', title: 'Served', statuses: ['delivered', 'completed'] },
 ];
 
 export const NEXT = {
   pending: { status: 'accepted', label: 'Accept' },
   accepted: { status: 'cooking', label: 'Start cooking' },
-  cooking: { status: 'ready_for_pickup', label: 'Ready' },
-  cooking_done: { status: 'ready_for_pickup', label: 'Ready' },
-  ready_for_pickup: { status: 'delivered', label: 'Served' },
+  cooking: { status: 'ready_for_pickup', label: 'Mark ready' },
+  cooking_done: { status: 'ready_for_pickup', label: 'Mark ready' },
+  ready_for_pickup: { status: 'delivered', label: 'Mark served' },
 };
 
 export const STATUS_COPY = {
   pending: 'New',
-  accepted: 'Kitchen',
-  cooking: 'Kitchen',
-  cooking_done: 'Kitchen',
-  ready_for_pickup: 'Ready',
-  delivered: 'Done',
-  completed: 'Done',
-  cancelled: 'Cancelled',
-};
-
-export const GUEST_STATUS_COPY = {
-  pending: 'With the kitchen',
-  accepted: 'Kitchen',
+  accepted: 'Accepted',
   cooking: 'Cooking',
-  cooking_done: 'Cooked',
+  cooking_done: 'Cooking',
   ready_for_pickup: 'Ready',
   delivered: 'Served',
   completed: 'Served',
   cancelled: 'Cancelled',
 };
+
+/** Same labels as staff — guests should not see a different vocabulary. */
+export const GUEST_STATUS_COPY = { ...STATUS_COPY };
 
 export const rupee = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
@@ -394,10 +388,20 @@ export const printBill = async (bill, tableLabel, venue = {}) => {
     }
   }
 
+  const guestNames = Array.from(
+    new Set(
+      orders
+        .map((order) => String(order.customerName || '').trim())
+        .filter(Boolean)
+    )
+  );
+  const guestLine = guestNames.length ? guestNames.join(', ') : 'Guest';
+
   const metaHtml = `
     <div class="meta">
       <div><strong>Bill No:</strong> ${escapeHtml(billNo)}</div>
       <div class="right"><strong>Table:</strong> ${escapeHtml(tableLabel || '—')}</div>
+      <div class="full"><strong>Guest:</strong> ${escapeHtml(guestLine)}</div>
       <div class="full muted">${escapeHtml(when)}</div>
       <div class="full"><strong>Pay Mode:</strong> Cash / Counter</div>
     </div>`;

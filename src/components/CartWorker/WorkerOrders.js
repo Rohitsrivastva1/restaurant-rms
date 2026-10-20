@@ -228,7 +228,18 @@ const WorkerOrders = () => {
       showToast('Pick a table first');
       return;
     }
-    if (!window.confirm(`Close table ${tableRow.label}? Open orders will be marked completed.`)) return;
+    const openForTable = orders.filter(
+      (order) =>
+        String(order.tableNumber || '').toLowerCase() === String(tableRow.label).toLowerCase()
+        && !['completed', 'cancelled', 'delivered'].includes(order.status)
+    );
+    const openTotal = openForTable.reduce((sum, order) => sum + Number(order.finalAmount || 0), 0);
+    const confirmMsg = [
+      `Close table ${tableRow.label}?`,
+      `${openForTable.length} open order${openForTable.length === 1 ? '' : 's'} · ${rupee(openTotal)}`,
+      'Open orders will be marked Served.',
+    ].join('\n');
+    if (!window.confirm(confirmMsg)) return;
     const response = await fetch(
       apiUrl(`/cart/worker/carts/${cartId}/tables/${tableRow.id}/release`),
       { method: 'POST', headers: headers() }
@@ -320,13 +331,13 @@ const WorkerOrders = () => {
                       ))}
                     </ul>
                     <div className="ro-ticket-actions">
-                      {column.key !== 'done' && next && (
+                      {column.key !== 'served' && next && (
                         <button className="ro-gold" type="button" onClick={() => advance(order, next.status)}>
                           {next.label}
                         </button>
                       )}
                       <button className="ro-ghost" type="button" onClick={() => printOrderBill(order, venue)}>Bill</button>
-                      {column.key !== 'done' && order.status !== 'cancelled' && (
+                      {column.key !== 'served' && order.status !== 'cancelled' && (
                         <button className="ro-ghost" type="button" onClick={() => advance(order, 'cancelled')}>
                           Cancel
                         </button>
