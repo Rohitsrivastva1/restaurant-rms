@@ -13,10 +13,19 @@ import {
   countOpenOrders,
   printBill,
   printKot,
+  printOrderBill,
   rupee,
   ticketAge,
   ticketAgeClass,
 } from '../../utils/orderBoard';
+
+const venueFromDash = (cartId) => {
+  const dash = cacheGet('worker-dashboard', 300_000);
+  const hit = (dash?.carts || []).find((cart) => String(cart.id) === String(cartId));
+  return hit
+    ? { id: hit.id, name: hit.name, location: hit.location, description: hit.description }
+    : { id: Number(cartId) };
+};
 
 const WorkerOrders = () => {
   const { cartId } = useParams();
@@ -25,6 +34,7 @@ const WorkerOrders = () => {
   const [orders, setOrders] = useState(cached?.orders || []);
   const [menuItems, setMenuItems] = useState(cached?.menuItems || []);
   const [tables, setTables] = useState(cached?.tables || []);
+  const [venue, setVenue] = useState(() => venueFromDash(cartId));
   const [loading, setLoading] = useState(!cached);
   const [refreshing, setRefreshing] = useState(false);
   const [fromCache, setFromCache] = useState(Boolean(cached));
@@ -75,6 +85,7 @@ const WorkerOrders = () => {
 
   useEffect(() => {
     document.title = 'Orders · Servya';
+    setVenue(venueFromDash(cartId));
     let alive = true;
     const load = async () => {
       // Paint board as soon as orders return; menu/tables can trail.
@@ -209,7 +220,7 @@ const WorkerOrders = () => {
       return;
     }
     const bill = await response.json();
-    printBill(bill, selectedTable);
+    await printBill(bill, selectedTable, bill.venue || venue);
   };
 
   const handleCloseTable = async () => {
@@ -307,7 +318,8 @@ const WorkerOrders = () => {
                           {next.label}
                         </button>
                       )}
-                      <button className="ro-ghost" type="button" onClick={() => printKot(order)}>KOT</button>
+                      <button className="ro-ghost" type="button" onClick={() => printKot(order, venue)}>KOT</button>
+                      <button className="ro-ghost" type="button" onClick={() => printOrderBill(order, venue)}>Bill</button>
                       {column.key !== 'done' && order.status !== 'cancelled' && (
                         <button className="ro-ghost" type="button" onClick={() => advance(order, 'cancelled')}>
                           Cancel

@@ -13,10 +13,19 @@ import {
   countActiveTickets,
   countOpenOrders,
   printKot,
+  printOrderBill,
   rupee,
   ticketAge,
   ticketAgeClass,
 } from '../../utils/orderBoard';
+
+const venueFromDash = (cartId) => {
+  const dash = cacheGet('owner-dashboard', 300_000);
+  const hit = (dash?.carts || []).find((cart) => String(cart.id) === String(cartId));
+  return hit
+    ? { id: hit.id, name: hit.name, location: hit.location, description: hit.description }
+    : { id: Number(cartId) };
+};
 
 const Orders = () => {
   const { cartId } = useParams();
@@ -24,6 +33,7 @@ const Orders = () => {
   const cached = cacheGet(`owner-orders:${cartId}`, 120_000);
   const [orders, setOrders] = useState(cached?.orders || []);
   const [menuItems, setMenuItems] = useState(cached?.menuItems || []);
+  const [venue, setVenue] = useState(() => venueFromDash(cartId));
   const [loading, setLoading] = useState(!cached);
   const [refreshing, setRefreshing] = useState(false);
   const [fromCache, setFromCache] = useState(Boolean(cached));
@@ -63,6 +73,7 @@ const Orders = () => {
 
   useEffect(() => {
     document.title = 'Orders · Servya';
+    setVenue(venueFromDash(cartId));
     let alive = true;
     const load = async () => {
       try {
@@ -243,7 +254,8 @@ const Orders = () => {
                           {next.label}
                         </button>
                       )}
-                      <button className="ro-ghost" type="button" onClick={() => printKot(order)}>KOT</button>
+                      <button className="ro-ghost" type="button" onClick={() => printKot(order, venue)}>KOT</button>
+                      <button className="ro-ghost" type="button" onClick={() => printOrderBill(order, venue)}>Bill</button>
                       {column.key !== 'done' && order.status !== 'cancelled' && (
                         <button className="ro-ghost" type="button" onClick={() => advance(order, 'cancelled')}>
                           Cancel
