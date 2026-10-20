@@ -5,7 +5,8 @@ services:
     name: servya-web
     runtime: static
     rootDir: .
-    buildCommand: npm ci && npm run build
+    # Install deps first — Render does not run npm install for static sites by default.
+    buildCommand: npm install --include=dev && CI=false npm run build
     staticPublishPath: build
     envVars:
       - key: REACT_APP_API_URL
@@ -16,6 +17,8 @@ services:
         value: "false"
       - key: CI
         value: "false"
+      - key: NODE_VERSION
+        value: "20.19.0"
     routes:
       - type: rewrite
         source: /*
