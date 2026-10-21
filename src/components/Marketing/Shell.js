@@ -86,6 +86,7 @@ export default function Shell({ title, children }) {
           <div>
             <h3>Company</h3>
             <Link to="/about">About</Link>
+            <Link to="/blog">Blog</Link>
             <Link to="/contact">Contact</Link>
             <Link to="/samples">Menu themes</Link>
           </div>

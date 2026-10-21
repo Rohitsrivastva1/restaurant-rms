@@ -22,6 +22,41 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://restaurant-rms-1.onrender.com/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://restaurant-rms-1.onrender.com/blog/qr-ordering-for-cafes-bars-and-hotels</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://restaurant-rms-1.onrender.com/blog/how-qr-table-ordering-works</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://restaurant-rms-1.onrender.com/blog/close-the-night-with-clear-reports</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://restaurant-rms-1.onrender.com/blog/change-your-menu-without-reprinting</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://restaurant-rms-1.onrender.com/blog/kitchen-order-board</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://restaurant-rms-1.onrender.com/blog/what-to-ask-before-buying-restaurant-software</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://restaurant-rms-1.onrender.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

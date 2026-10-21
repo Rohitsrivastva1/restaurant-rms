@@ -6,6 +6,7 @@ const LINKS = [
   { to: '/', label: 'Home' },
   { to: '/about', label: 'About' },
   { to: '/pricing', label: 'Pricing' },
+  { to: '/blog', label: 'Blog' },
   { to: '/contact', label: 'Contact' },
 ];
 
@@ -15,7 +16,11 @@ export default function Nav() {
 
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  const current = (to) => (pathname === to || (to === '/' && pathname === '/home') ? 'page' : undefined);
+  const current = (to) => {
+    if (to === '/') return pathname === '/' || pathname === '/home' ? 'page' : undefined;
+    if (pathname === to || pathname.startsWith(`${to}/`)) return 'page';
+    return undefined;
+  };
 
   return (
     <>

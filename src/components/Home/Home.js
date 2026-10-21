@@ -11,6 +11,7 @@ import CtaBand from './CtaBand';
 import Footer from './Footer';
 import MobileCtaBar from './MobileCtaBar';
 import { formatPlanPrice, isIndia, planPriceNote } from '../../utils/planPrice';
+import { POSTS } from '../Blog/posts';
 
 const FAQ = [
   ['Do guests need to download an app?', 'No. Guests scan the QR code on their table with their phone camera, and your menu opens in the browser.'],
@@ -236,6 +237,29 @@ export default function Home() {
                   <p>{a}</p>
                 </details>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="hm-section" style={{ background: '#120D0A' }}>
+          <div className="hm-wrap">
+            <div className="hm-eye">Journal</div>
+            <h2>Guides for <em>QR ordering</em> and the kitchen.</h2>
+            <p className="hm-lead">How table ordering, the kitchen board, menu changes, and the nightly close work on a real service.</p>
+            <div className="hm-journal">
+              {POSTS.slice(0, 3).map((post) => (
+                <Link className="hm-note-card" key={post.slug} to={`/blog/${post.slug}`}>
+                  <img src={post.image} alt="" />
+                  <div>
+                    <span>{post.kicker} · {post.dateLabel}</span>
+                    <h3>{post.title}</h3>
+                    <p>{post.excerpt}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="hm-actions">
+              <Link className="hm-btn ghost" to="/blog">Read the journal →</Link>
             </div>
           </div>
         </section>

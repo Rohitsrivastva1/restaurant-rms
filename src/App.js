@@ -25,6 +25,8 @@ import HomePage from './components/Pages/HomePage';
 import AboutPage from './components/Pages/AboutPage';
 import ContactPage from './components/Pages/ContactPage';
 import PricingPage from './components/Pages/PricingPage';
+import BlogIndex from './components/Blog/BlogIndex';
+import BlogPost from './components/Blog/BlogPost';
 
 // Legal Pages
 import PrivacyPolicy from './components/Pages/Legal/PrivacyPolicy';
@@ -88,6 +90,8 @@ function AppContent() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/blog" element={<BlogIndex />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/cookies" element={<CookiePolicy />} />

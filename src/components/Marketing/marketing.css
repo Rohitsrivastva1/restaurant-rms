@@ -623,6 +623,66 @@
 .mk-close h2 { max-width: 14ch; }
 @media (min-width: 780px) { .mk-close { min-height: 380px; } .mk-close .mk-scrim { padding: 56px 64px; } }
 
+.mk-blog-grid { display: grid; gap: 18px; }
+@media (min-width: 780px) { .mk-blog-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1024px) { .mk-blog-grid { grid-template-columns: 1fr 1fr 1fr; } }
+.mk-blog-related { margin-top: 18px; }
+@media (min-width: 780px) { .mk-blog-related { grid-template-columns: 1fr 1fr; } }
+.mk-blog-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  overflow: hidden;
+  min-height: 100%;
+  color: inherit;
+  transition: transform 360ms ease, border-color 360ms ease;
+}
+.mk-blog-card:hover { transform: translateY(-6px); border-color: var(--brass); }
+.mk-blog-card img { width: 100%; height: 190px; object-fit: cover; }
+.mk-blog-body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.mk-blog-body h2 { font-size: clamp(26px, 2vw, 32px); line-height: 1.15; }
+.mk-blog-body p { color: var(--muted); line-height: 1.55; }
+.mk-blog-meta {
+  color: var(--brass);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.mk-blog-more { margin-top: auto; color: var(--brass-hi); font-weight: 700; padding-top: 8px; }
+.mk-back {
+  display: inline-flex;
+  margin-bottom: 16px;
+  color: var(--brass-hi);
+  font-weight: 700;
+}
+.mk-post-meta { margin-top: 18px; }
+.mk-article { max-width: 46rem; }
+.mk-article h1 { font-size: clamp(40px, 5vw, 68px); }
+.mk-byline, .mk-author-note { color: var(--muted); font-size: 16px; line-height: 1.6; max-width: 42rem; }
+.mk-author-note { margin-top: 0; }
+.mk-article a { color: var(--brass-hi); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.mk-faq-block { margin-top: 48px; }
+.mk-faq-block h2 { margin-top: 0; }
+.mk-faq-block h3 {
+  font-family: Manrope, system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-top: 28px;
+}
+.mk-article h2 {
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.15;
+  margin-top: 36px;
+}
+.mk-article p { color: var(--muted); font-size: 18px; line-height: 1.7; margin-top: 14px; }
+.mk-article ul, .mk-article ol { margin: 14px 0 0; padding-left: 1.2rem; color: var(--muted); }
+.mk-article li { margin: 8px 0; line-height: 1.6; font-size: 18px; }
+.mk-article li::marker { color: var(--brass); }
+
 @keyframes mk-rise {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: none; }

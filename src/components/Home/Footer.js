@@ -21,6 +21,7 @@ export default function Footer() {
         <div>
           <h2>Company</h2>
           <Link to="/about">About</Link>
+          <Link to="/blog">Blog</Link>
           <Link to="/contact">Contact</Link>
           <Link to="/samples">Menu themes</Link>
         </div>
