@@ -1,18 +1,20 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Shell from '../Marketing/Shell';
+import { breadcrumbSchema } from '../../utils/seo';
 import { POSTS } from './posts';
 
 export default function BlogIndex() {
-  useEffect(() => {
-    const tag = document.querySelector('meta[name="description"]');
-    if (tag) {
-      tag.setAttribute('content', 'Guides for restaurant owners on QR table ordering, kitchen boards, menu updates, and closing the night. Written by the Servya team.');
-    }
-  }, []);
-
   return (
-    <Shell title="Servya Blog: QR Ordering and Kitchen Guides">
+    <Shell
+      title="Servya Blog: QR Ordering and Kitchen Guides"
+      description="Guides for restaurant owners on QR table ordering, kitchen boards, menu updates, and closing the night. Written by the Servya team."
+      image="/images/hospitality/bar-pour.webp?v=4"
+      jsonLd={breadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Blog', path: '/blog' },
+      ])}
+    >
       <header className="mk-pagehead">
         <img src="/images/hospitality/bar-pour.webp?v=4" alt="An amber cocktail being poured at a lit back bar" />
         <div className="mk-scrim">

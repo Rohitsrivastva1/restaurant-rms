@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
+import { usePageSeo } from '../../utils/seo';
 import './cafeSample.css';
 
 const SAMPLE_FONTS_ID = 'servya-cafe-sample-fonts';
@@ -372,6 +373,11 @@ function Booking({ variant }) {
 
 export function CafeSampleIndex() {
   useSampleFonts();
+  usePageSeo({
+    title: 'Guest Menu Theme Samples',
+    description: 'Three sample guest menus for restaurants and cafes: Molten, Fire and Caramel. See how a QR table menu can look on a phone.',
+    path: '/samples',
+  });
   return (
     <div className="cs-page">
       <Switcher />
@@ -397,6 +403,16 @@ export function CafeSample() {
   const [spice, setSpice] = useState('all');
   const [cart, setCart] = useState({});
   const [added, setAdded] = useState({});
+
+  usePageSeo({
+    title: data ? `${data.name} Guest Menu Sample` : 'Guest Menu Sample',
+    description: data
+      ? `Preview the ${data.name} guest menu theme for QR table ordering — sample dishes and prices the way diners see them on their phone.`
+      : 'Sample guest menu themes for QR table ordering.',
+    path: data ? `/samples/${data.id}` : '/samples',
+    image: data?.hero,
+    noIndex: !data,
+  });
 
   const count = useMemo(() => Object.values(cart).reduce((sum, value) => sum + value, 0), [cart]);
 

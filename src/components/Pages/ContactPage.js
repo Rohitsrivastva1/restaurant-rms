@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Shell, { FAQ } from '../Marketing/Shell';
+import { faqSchema } from '../../utils/seo';
+import { submitServyaLead } from '../../services/leads';
 
 const FAQ_ITEMS = [
   {
@@ -13,18 +15,18 @@ const FAQ_ITEMS = [
   },
 ];
 
-const EMPTY = { name: '', email: '', phone: '', business: '', message: '' };
+const EMPTY = { name: '', email: '', phone: '', business: '', message: '', website: '' };
 
 function validate(formData) {
   const next = {};
-  if (!formData.name.trim()) next.name = 'Please enter your name.';
+  if (formData.name.trim().length < 2) next.name = 'Please enter your name.';
   if (!formData.email.trim()) next.email = 'Please enter your email address.';
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) next.email = 'Enter a valid email address, like name@venue.com.';
   if (formData.phone.trim() && !/^\+\d[\d\s-]{7,}$/.test(formData.phone.trim())) {
     next.phone = 'Enter a valid phone number, including the country code.';
   }
   if (!formData.business) next.business = 'Please choose your business type.';
-  if (!formData.message.trim()) next.message = 'Please add a short message.';
+  if (formData.message.trim().length < 10) next.message = 'Add a short note about your venue (at least a sentence).';
   return next;
 }
 
@@ -32,30 +34,32 @@ const ContactPage = () => {
   const [formData, setFormData] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
-
-  useEffect(() => {
-    const tag = document.querySelector('meta[name="description"]');
-    if (tag) {
-      tag.setAttribute('content', 'Talk to the Servya team about your restaurant, cafe, bar or hotel. Book a demo, ask about plans or get support. Write to hello@buildnaya.com.');
-    }
-  }, []);
+  const [sending, setSending] = useState(false);
+  const [serverMessage, setServerMessage] = useState('');
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
-    setErrors((current) => ({ ...current, [event.target.name]: undefined }));
+    setErrors((current) => ({ ...current, [event.target.name]: undefined, form: undefined }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const next = validate(formData);
     setErrors(next);
     if (Object.keys(next).length) return;
-    const subject = encodeURIComponent(`Servya enquiry from ${formData.name.trim()}`);
-    const body = encodeURIComponent(
-      `Name: ${formData.name.trim()}\nEmail: ${formData.email.trim()}\nPhone: ${formData.phone.trim() || '—'}\nBusiness: ${formData.business}\n\n${formData.message.trim()}`
-    );
-    window.location.href = `mailto:hello@buildnaya.com?subject=${subject}&body=${body}`;
+
+    setSending(true);
+    const result = await submitServyaLead(formData);
+    setSending(false);
+
+    if (!result.ok) {
+      setErrors({ form: result.error });
+      return;
+    }
+
+    setServerMessage(result.message || '');
     setSent(true);
+    setFormData(EMPTY);
   };
 
   const field = (name) => `field${errors[name] ? ' invalid' : ''}`;
@@ -67,7 +71,13 @@ const ContactPage = () => {
   };
 
   return (
-    <Shell active="contact" title="Contact Servya: Book a Demo or Ask Us">
+    <Shell
+      active="contact"
+      title="Contact Servya: Book a Demo or Ask Us"
+      description="Talk to the Servya team about your restaurant, cafe, bar or hotel. Book a demo, ask about plans or get support at hello@buildnaya.com."
+      image="/images/hospitality/bar-pour.webp?v=4"
+      jsonLd={faqSchema(FAQ_ITEMS.map((item) => [item.q, item.a]))}
+    >
       <header className="mk-pagehead">
         {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
         <img src="/images/hospitality/bar-pour.webp?v=4" alt="A bartender pouring an amber cocktail with a flamed orange peel in front of a lit back bar" />
@@ -88,35 +98,40 @@ const ContactPage = () => {
             {sent ? (
               <div className="mk-status" role="status" style={{ marginTop: 18 }}>
                 <h3>Thank you.</h3>
-                <p className="mk-lead">Your email app should open with this message addressed to hello@buildnaya.com. Send it, and we’ll reply from there.</p>
+                <p className="mk-lead">
+                  {serverMessage || 'We’ve received your message and will reply within 1 business day.'}
+                </p>
                 <div className="mk-row"><Link className="mk-ghost" to="/">Back to home</Link></div>
               </div>
             ) : (
               <form id="enquiry" className="mk-form" style={{ marginTop: 18 }} onSubmit={handleSubmit} noValidate>
-                {Object.keys(errors).length > 0 && (
+                {errors.form && (
+                  <p className="err" role="alert">{errors.form}</p>
+                )}
+                {Object.keys(errors).filter((key) => key !== 'form').length > 0 && !errors.form && (
                   <p className="err" role="alert">Please check the highlighted fields and try again.</p>
                 )}
                 <div className="mk-grid-2">
                   <div className={field('name')}>
                     <label htmlFor="name">Full name *</label>
-                    <input id="name" name="name" placeholder="Your full name" autoComplete="name" value={formData.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'name-error' : undefined} />
+                    <input id="name" name="name" placeholder="Your full name" autoComplete="name" value={formData.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'name-error' : undefined} disabled={sending} />
                     {errors.name && <p className="err" id="name-error">{errors.name}</p>}
                   </div>
                   <div className={field('email')}>
                     <label htmlFor="email">Email address *</label>
-                    <input id="email" name="email" type="email" placeholder="you@yourvenue.com" autoComplete="email" value={formData.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} aria-describedby="email-help" />
+                    <input id="email" name="email" type="email" placeholder="you@yourvenue.com" autoComplete="email" value={formData.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} aria-describedby="email-help" disabled={sending} />
                     <p className="mk-note" id="email-help">We’ll reply to this address.</p>
                     {errors.email && <p className="err">{errors.email}</p>}
                   </div>
                   <div className={field('phone')}>
                     <label htmlFor="phone">Phone number (optional)</label>
-                    <input id="phone" name="phone" placeholder="+91 98765 43210" autoComplete="tel" value={formData.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} aria-describedby="phone-help" />
+                    <input id="phone" name="phone" placeholder="+91 98765 43210" autoComplete="tel" value={formData.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} aria-describedby="phone-help" disabled={sending} />
                     <p className="mk-note" id="phone-help">Add it if you’d prefer a call.</p>
                     {errors.phone && <p className="err">{errors.phone}</p>}
                   </div>
                   <div className={field('business')}>
                     <label htmlFor="business">Business type *</label>
-                    <select id="business" name="business" value={formData.business} onChange={handleChange} aria-invalid={Boolean(errors.business)} aria-describedby={errors.business ? 'business-error' : undefined}>
+                    <select id="business" name="business" value={formData.business} onChange={handleChange} aria-invalid={Boolean(errors.business)} aria-describedby={errors.business ? 'business-error' : undefined} disabled={sending}>
                       <option value="">Select your business type</option>
                       <option value="restaurant">Restaurant</option>
                       <option value="cafe">Cafe</option>
@@ -130,11 +145,16 @@ const ContactPage = () => {
                 </div>
                 <div className={field('message')}>
                   <label htmlFor="message">Message *</label>
-                  <textarea id="message" name="message" rows={5} placeholder="Tell us about your venue, how many tables you have, and what you’d like help with." value={formData.message} onChange={handleChange} aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? 'message-error' : undefined} />
+                  <textarea id="message" name="message" rows={5} placeholder="Tell us about your venue, how many tables you have, and what you’d like help with." value={formData.message} onChange={handleChange} aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? 'message-error' : undefined} disabled={sending} />
                   {errors.message && <p className="err" id="message-error">{errors.message}</p>}
                 </div>
-                <button className="mk-gold" type="submit" style={{ width: 'fit-content', paddingInline: 22 }}>
-                  Send message
+                {/* Honeypot — leave empty; bots that fill it are dropped by the API */}
+                <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', top: 'auto', width: 1, height: 1, overflow: 'hidden' }}>
+                  <label htmlFor="website">Website</label>
+                  <input id="website" name="website" tabIndex={-1} autoComplete="off" value={formData.website} onChange={handleChange} />
+                </div>
+                <button className="mk-gold" type="submit" style={{ width: 'fit-content', paddingInline: 22 }} disabled={sending}>
+                  {sending ? 'Sending…' : 'Send message'}
                 </button>
                 <p className="mk-note">We use your details only to reply to your message. <Link to="/privacy">Privacy Policy</Link></p>
               </form>

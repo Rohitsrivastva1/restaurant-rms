@@ -11,7 +11,10 @@ Disallow: /admin
 Disallow: /chef
 Disallow: /superadmin
 Disallow: /guest/
+Disallow: /login
 Disallow: /login-test
 Disallow: /logout
+Disallow: /cart-owner-signup
+Disallow: /superadmin-signup
 
-Sitemap: https://restaurant-rms-1.onrender.com/sitemap.xml
+Sitemap: https://servya.buildnaya.com/sitemap.xml

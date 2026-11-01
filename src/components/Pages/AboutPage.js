@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Shell from '../Marketing/Shell';
 
@@ -30,15 +30,13 @@ const WHY = [
 ];
 
 export default function AboutPage() {
-  useEffect(() => {
-    const tag = document.querySelector('meta[name="description"]');
-    if (tag) {
-      tag.setAttribute('content', 'Servya is restaurant and cafe management software from BuildNaya in Noida, built to help hospitality teams take orders and run service with less effort.');
-    }
-  }, []);
-
   return (
-    <Shell active="about" title="About Servya: Restaurant Software Built by BuildNaya">
+    <Shell
+      active="about"
+      title="About Servya: Restaurant Software Built by BuildNaya"
+      description="Servya is restaurant and cafe management software from BuildNaya in Noida, built to help hospitality teams take orders and run service with less effort."
+      image="/images/hospitality/hero-steak-alt.webp?v=4"
+    >
       <header className="mk-pagehead">
         {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
         <img src="/images/hospitality/hero-steak-alt.webp?v=4" alt="A seared steak plated in a candlelit dining room" />

@@ -1,8 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Nav from '../../Home/Nav';
+import { usePageSeo } from '../../../utils/seo';
 
 const PrivacyPolicy = () => {
+  usePageSeo({
+    title: 'Privacy Policy',
+    description: 'How Servya and BuildNaya collect, use and protect information when you use our restaurant software and website.',
+    path: '/privacy',
+  });
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}

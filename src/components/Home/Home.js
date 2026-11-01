@@ -12,6 +12,14 @@ import Footer from './Footer';
 import MobileCtaBar from './MobileCtaBar';
 import HospImg from './HospImg';
 import { formatPlanPrice, isIndia, planPriceNote } from '../../utils/planPrice';
+import {
+  DEFAULT_DESCRIPTION,
+  breadcrumbSchema,
+  faqSchema,
+  organizationSchema,
+  softwareSchema,
+  usePageSeo,
+} from '../../utils/seo';
 import { POSTS } from '../Blog/posts';
 
 const FAQ = [
@@ -49,18 +57,22 @@ const PLANS = [
   },
 ];
 
-function useHomeMeta() {
-  useEffect(() => {
-    document.title = 'Servya: QR Ordering & Kitchen Board for Restaurants';
-    const tag = document.querySelector('meta[name="description"]');
-    if (tag) {
-      tag.setAttribute('content', 'Servya gives restaurants, cafes, bars and hotel dining rooms QR table ordering, a kitchen order board, menu and staff management, and clear reports.');
-    }
-  }, []);
-}
-
 export default function Home() {
-  useHomeMeta();
+  usePageSeo({
+    title: 'Servya: QR Ordering & Kitchen Board for Restaurants',
+    description: DEFAULT_DESCRIPTION,
+    path: '/',
+    image: '/images/hospitality/hero-steak-alt.webp?v=4',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        organizationSchema(),
+        softwareSchema(),
+        faqSchema(FAQ),
+        breadcrumbSchema([{ name: 'Home', path: '/' }]),
+      ],
+    },
+  });
   const india = isIndia();
   useEffect(() => {
     const nodes = document.querySelectorAll('.hm [data-reveal]');

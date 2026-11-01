@@ -1,8 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Nav from '../../Home/Nav';
+import { usePageSeo } from '../../../utils/seo';
 
 const TermsOfService = () => {
+  usePageSeo({
+    title: 'Terms of Service',
+    description: 'Terms for using Servya restaurant software from BuildNaya, including accounts, service use and responsibilities.',
+    path: '/terms',
+  });
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}

@@ -1,8 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Nav from '../../Home/Nav';
+import { usePageSeo } from '../../../utils/seo';
 
 const CookiePolicy = () => {
+  usePageSeo({
+    title: 'Cookie Policy',
+    description: 'How Servya uses cookies on servya.buildnaya.com to keep you signed in and improve the site.',
+    path: '/cookies',
+  });
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}

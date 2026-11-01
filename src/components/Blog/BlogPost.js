@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Shell from '../Marketing/Shell';
+import { articleSchema, breadcrumbSchema } from '../../utils/seo';
 import { AUTHOR, getPost, relatedPosts } from './posts';
 
 function Paragraph({ value }) {
@@ -23,13 +24,15 @@ export default function BlogPost() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const tag = document.querySelector('meta[name="description"]');
-    if (tag && post) tag.setAttribute('content', post.description);
   }, [post]);
 
   if (!post) {
     return (
-      <Shell title="Article not found · Servya">
+      <Shell
+        title="Article not found"
+        description="That Servya journal note could not be found."
+        noIndex
+      >
         <section className="mk-section">
           <div className="mk-wrap mk-article">
             <Link className="mk-back" to="/blog">← All notes</Link>
@@ -45,7 +48,23 @@ export default function BlogPost() {
   }
 
   return (
-    <Shell title={`${post.title} · Servya`}>
+    <Shell
+      title={post.title}
+      description={post.description || post.excerpt}
+      image={post.image}
+      type="article"
+      jsonLd={{
+        '@context': 'https://schema.org',
+        '@graph': [
+          articleSchema(post),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Blog', path: '/blog' },
+            { name: post.title, path: `/blog/${post.slug}` },
+          ]),
+        ],
+      }}
+    >
       <header className="mk-pagehead mk-posthead">
         <img src={post.image} alt={post.imageAlt} />
         <div className="mk-scrim">

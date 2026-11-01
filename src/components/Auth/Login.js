@@ -88,7 +88,11 @@ const Login = () => {
   };
 
   return (
-    <Shell title="Log in to Servya">
+    <Shell
+      title="Log in to Servya"
+      description="Sign in to your Servya venue account to manage menus, tables, kitchen board and reports."
+      noIndex
+    >
       <section className="mk-section mk-auth-section">
         <div className="mk-wrap mk-auth">
           <div>

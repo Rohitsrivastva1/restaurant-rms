@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { PLANS } from './content';
 import Nav from '../Home/Nav';
+import { usePageSeo } from '../../utils/seo';
 import '../Home/home.css';
 import './marketing.css';
 
@@ -59,10 +60,25 @@ export function PricingCards({ compact = false }) {
   );
 }
 
-export default function Shell({ title, children }) {
-  useEffect(() => {
-    document.title = title || 'Servya';
-  }, [title]);
+export default function Shell({
+  title,
+  description,
+  image,
+  type = 'website',
+  noIndex = false,
+  jsonLd,
+  children,
+}) {
+  const { pathname } = useLocation();
+  usePageSeo({
+    title: title || 'Servya',
+    description,
+    path: pathname,
+    image,
+    type,
+    noIndex,
+    jsonLd,
+  });
 
   return (
     <div className="mk">

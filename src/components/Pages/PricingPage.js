@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Shell, { FAQ } from '../Marketing/Shell';
 import { formatPlanPrice, isIndia, planPriceNote } from '../../utils/planPrice';
+import { faqSchema } from '../../utils/seo';
 
 const PLANS = [
   {
@@ -47,15 +48,15 @@ const FAQ_ITEMS = [
 
 export default function PricingPage() {
   const india = isIndia();
-  useEffect(() => {
-    const tag = document.querySelector('meta[name="description"]');
-    if (tag) {
-      tag.setAttribute('content', 'Compare Servya plans for restaurants, cafes, bars and hotel dining: QR table ordering, kitchen board, menu, staff and reports. Talk to us.');
-    }
-  }, []);
 
   return (
-    <Shell active="pricing" title="Servya Pricing: Plans for Restaurants & Bars">
+    <Shell
+      active="pricing"
+      title="Servya Pricing: Plans for Restaurants & Bars"
+      description="Compare Servya plans for restaurants, cafes, bars and hotel dining: QR table ordering, kitchen board, menu, staff and reports."
+      image="/images/hospitality/hero-steak-alt.webp?v=4"
+      jsonLd={faqSchema(FAQ_ITEMS.map((item) => [item.q, item.a]))}
+    >
       <header className="mk-pagehead">
         {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
         <img src="/images/hospitality/hero-steak-alt.webp?v=4" alt="A seared steak plated on a candlelit restaurant table" />

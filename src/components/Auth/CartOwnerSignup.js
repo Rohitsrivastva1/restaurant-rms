@@ -108,7 +108,11 @@ const CartOwnerSignup = () => {
   ];
 
   return (
-    <Shell title="Create a Servya account">
+    <Shell
+      title="Create a Servya account"
+      description="Create a Servya account for your restaurant, cafe, bar or hotel dining room. Set up menus, tables and the kitchen board."
+      noIndex
+    >
       <section className="mk-section mk-auth-section">
         <div className="mk-wrap mk-auth wide">
           <div>

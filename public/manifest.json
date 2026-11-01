@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Servya",
+  "name": "Servya: QR Ordering & Kitchen Board",
+  "description": "QR table ordering and a kitchen board for restaurants, cafes, bars and hotel dining.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +19,8 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0b0806",
+  "background_color": "#0b0806"
 }

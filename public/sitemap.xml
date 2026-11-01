@@ -1,108 +1,110 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Servya public marketing pages only. Auth, dashboards, and /guest/:id are omitted. -->
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/</loc>
+    <loc>https://servya.buildnaya.com/</loc>
+    <lastmod>2026-11-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/home</loc>
+    <loc>https://servya.buildnaya.com/about</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://servya.buildnaya.com/pricing</loc>
+    <lastmod>2026-11-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/about</loc>
+    <loc>https://servya.buildnaya.com/blog</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://servya.buildnaya.com/blog/qr-ordering-for-cafes-bars-and-hotels</loc>
+    <lastmod>2026-10-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/pricing</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/blog</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/blog/qr-ordering-for-cafes-bars-and-hotels</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/blog/how-qr-table-ordering-works</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/blog/close-the-night-with-clear-reports</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/blog/change-your-menu-without-reprinting</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/blog/kitchen-order-board</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/blog/what-to-ask-before-buying-restaurant-software</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/contact</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/login</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/cart-owner-signup</loc>
+    <loc>https://servya.buildnaya.com/blog/how-qr-table-ordering-works</loc>
+    <lastmod>2026-10-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/samples</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://restaurant-rms-1.onrender.com/samples/molten</loc>
+    <loc>https://servya.buildnaya.com/blog/close-the-night-with-clear-reports</loc>
+    <lastmod>2026-10-08</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/samples/fire</loc>
+    <loc>https://servya.buildnaya.com/blog/change-your-menu-without-reprinting</loc>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/samples/caramel</loc>
+    <loc>https://servya.buildnaya.com/blog/kitchen-order-board</loc>
+    <lastmod>2026-09-28</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/privacy</loc>
+    <loc>https://servya.buildnaya.com/blog/what-to-ask-before-buying-restaurant-software</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://servya.buildnaya.com/contact</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://servya.buildnaya.com/samples</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+  <url>
+    <loc>https://servya.buildnaya.com/samples/molten</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.45</priority>
+  </url>
+  <url>
+    <loc>https://servya.buildnaya.com/samples/fire</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.45</priority>
+  </url>
+  <url>
+    <loc>https://servya.buildnaya.com/samples/caramel</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.45</priority>
+  </url>
+  <url>
+    <loc>https://servya.buildnaya.com/privacy</loc>
+    <lastmod>2026-11-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/terms</loc>
+    <loc>https://servya.buildnaya.com/terms</loc>
+    <lastmod>2026-11-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://restaurant-rms-1.onrender.com/cookies</loc>
+    <loc>https://servya.buildnaya.com/cookies</loc>
+    <lastmod>2026-11-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
