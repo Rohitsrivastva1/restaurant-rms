@@ -1,10 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import HospImg from './HospImg';
+
 export default function CtaBand({ image, alt, eyebrow, title, text, primary, secondary, children }) {
+  const name = String(image || '')
+    .replace(/^.*\//, '')
+    .replace(/\.(png|webp|jpe?g).*$/i, '');
+
   return (
     <div className="hm-band">
-      {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-      <img src={image} alt={alt} />
+      <HospImg name={name} alt={alt} width={640} height={310} />
       <div className="hm-scrim">
         {eyebrow && <div className="hm-eye">{eyebrow}</div>}
         <h2>{title}</h2>

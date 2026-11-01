@@ -1,6 +1,22 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import './cafeSample.css';
+
+const SAMPLE_FONTS_ID = 'servya-cafe-sample-fonts';
+const SAMPLE_FONTS_HREF =
+  'https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600;700&family=Caveat:wght@700&family=DM+Sans:wght@500;600;700;800&family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap';
+
+function useSampleFonts() {
+  useEffect(() => {
+    if (document.getElementById(SAMPLE_FONTS_ID)) return undefined;
+    const link = document.createElement('link');
+    link.id = SAMPLE_FONTS_ID;
+    link.rel = 'stylesheet';
+    link.href = SAMPLE_FONTS_HREF;
+    document.head.appendChild(link);
+    return undefined;
+  }, []);
+}
 
 const TIMES = ['6:00 pm', '6:30 pm', '7:00 pm', '7:30 pm', '8:00 pm', '8:30 pm', '9:00 pm', '9:30 pm'];
 
@@ -355,6 +371,7 @@ function Booking({ variant }) {
 }
 
 export function CafeSampleIndex() {
+  useSampleFonts();
   return (
     <div className="cs-page">
       <Switcher />
@@ -372,6 +389,7 @@ export function CafeSampleIndex() {
 }
 
 export function CafeSample() {
+  useSampleFonts();
   const { variant } = useParams();
   const data = VARIANTS[variant];
   const booking = useLocation().pathname.endsWith('/book');

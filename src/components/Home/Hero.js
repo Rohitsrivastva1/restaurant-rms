@@ -1,16 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import HospImg from './HospImg';
 
 export default function Hero() {
   return (
     <section className="hm-hero">
       <div className="hm-hero-media">
-        {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-        <img
-          src="/images/hospitality/hero-steak-alt.png?v=2"
+        <HospImg
+          name="hero-steak-alt"
           alt="A seared steak plated on a candlelit restaurant table at night"
-          width="640"
-          height="620"
+          width={640}
+          height={620}
+          eager
         />
       </div>
       <div className="hm-wrap hm-hero-copy">

@@ -14,7 +14,7 @@ export default function BlogIndex() {
   return (
     <Shell title="Servya Blog: QR Ordering and Kitchen Guides">
       <header className="mk-pagehead">
-        <img src="/images/hospitality/bar-pour.png?v=3" alt="An amber cocktail being poured at a lit back bar" />
+        <img src="/images/hospitality/bar-pour.webp?v=4" alt="An amber cocktail being poured at a lit back bar" />
         <div className="mk-scrim">
           <div className="mk-wrap">
             <div className="mk-kicker">Journal</div>

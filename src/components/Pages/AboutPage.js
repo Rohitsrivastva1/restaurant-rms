@@ -41,7 +41,7 @@ export default function AboutPage() {
     <Shell active="about" title="About Servya: Restaurant Software Built by BuildNaya">
       <header className="mk-pagehead">
         {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-        <img src="/images/hospitality/hero-steak-alt.png" alt="A seared steak plated in a candlelit dining room" />
+        <img src="/images/hospitality/hero-steak-alt.webp?v=4" alt="A seared steak plated in a candlelit dining room" />
         <div className="mk-scrim">
           <div className="mk-wrap">
             <div className="mk-kicker">About Servya</div>
@@ -72,15 +72,15 @@ export default function AboutPage() {
       <section className="mk-section" style={{ paddingTop: 0 }}>
         <div className="mk-wrap mk-story-photo">
           <figure className="mk-photo">
-            <img src="/images/hospitality/hero-steak.png" alt="A seared steak on a dark plate in a dimly lit dining room" />
+            <img src="/images/hospitality/hero-steak.webp?v=4" alt="A seared steak on a dark plate in a dimly lit dining room" />
             <figcaption>The dining room</figcaption>
           </figure>
           <figure className="mk-photo">
-            <img src="/images/hospitality/bar-cocktail.png" alt="A bartender pouring an amber cocktail in front of a lit back bar" />
+            <img src="/images/hospitality/bar-cocktail.webp?v=4" alt="A bartender pouring an amber cocktail in front of a lit back bar" />
             <figcaption>The bar</figcaption>
           </figure>
           <figure className="mk-photo">
-            <img src="/images/hospitality/bar-pour.png?v=3" alt="An amber cocktail being poured at a back bar" />
+            <img src="/images/hospitality/bar-pour.webp?v=4" alt="An amber cocktail being poured at a back bar" />
             <figcaption>The pour</figcaption>
           </figure>
         </div>
@@ -139,7 +139,7 @@ export default function AboutPage() {
       <section className="mk-section" style={{ paddingTop: 0 }}>
         <div className="mk-wrap">
           <div className="mk-band mk-close">
-            <img src="/images/hospitality/hero-steak-alt.png" alt="A seared steak plated on a candlelit restaurant table" />
+            <img src="/images/hospitality/hero-steak-alt.webp?v=4" alt="A seared steak plated on a candlelit restaurant table" />
             <div className="mk-scrim">
               <div className="mk-kicker">Ready to talk?</div>
               <h2>See it with <em>your own menu.</em></h2>

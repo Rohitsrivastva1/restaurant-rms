@@ -23,7 +23,8 @@
   overflow-x: clip;
 }
 .hm * { box-sizing: border-box; }
-.hm img { max-width: 100%; display: block; }
+.hm img, .hm picture { max-width: 100%; display: block; }
+.hm picture img { width: 100%; height: 100%; }
 .hm a { color: inherit; text-decoration: none; }
 .hm h1, .hm h2, .hm h3, .hm .hm-display {
   font-family: "Bodoni Moda", Georgia, serif;
@@ -220,6 +221,7 @@
   position: relative; overflow: hidden; border-radius: 22px; border: 1px solid var(--line);
   min-height: 380px; box-shadow: 0 28px 60px -28px rgba(0, 0, 0, 0.8);
 }
+.hm-venue picture { width: 100%; height: 100%; }
 .hm-venue img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   transition: transform 240ms ease;
@@ -247,6 +249,7 @@
   min-height: 240px; background: var(--card);
   box-shadow: 0 28px 60px -28px rgba(0, 0, 0, 0.8);
 }
+.hm-media picture { width: 100%; height: 100%; min-height: 280px; }
 .hm-media img { width: 100%; height: 100%; object-fit: cover; min-height: 280px; }
 .hm-num {
   color: var(--brass); font-family: "Bodoni Moda", Georgia, serif;
@@ -337,6 +340,7 @@
   position: relative; border-radius: 22px; overflow: hidden; min-height: 460px;
   display: grid; align-items: end; border: 1px solid var(--line);
 }
+.hm-band picture { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hm-band img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hm-scrim {
   position: relative; z-index: 1; padding: 48px 24px;

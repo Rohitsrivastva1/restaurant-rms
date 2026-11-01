@@ -114,7 +114,7 @@ export default function BlogPost() {
       <section className="mk-section" style={{ paddingTop: 0 }}>
         <div className="mk-wrap">
           <div className="mk-band mk-close">
-            <img src="/images/hospitality/bar-pour.png?v=3" alt="An amber cocktail being poured at a back bar" />
+            <img src="/images/hospitality/bar-pour.webp?v=4" alt="An amber cocktail being poured at a back bar" />
             <div className="mk-scrim">
               <div className="mk-kicker">See it on your menu</div>
               <h2>Bring your <em>Friday with you.</em></h2>

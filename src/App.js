@@ -1,88 +1,80 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
-// Context
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-
-// Layout Components
 import DashboardLayout from './components/Layout/DashboardLayout';
-
-// Navigation
-import Navbar from './components/Navigation/Navbar';
-
-// Auth Components
 import Login from './components/Auth/Login';
 import Logout from './components/Auth/Logout';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
-import SuperAdminSignup from './components/Auth/SuperAdminSignup';
-import CartOwnerSignup from './components/Auth/CartOwnerSignup';
-import LoginTest from './components/Auth/LoginTest';
-
-// Landing & Public Pages
 import LandingPage from './components/Landing/LandingPage';
-import HomePage from './components/Pages/HomePage';
-import AboutPage from './components/Pages/AboutPage';
-import ContactPage from './components/Pages/ContactPage';
-import PricingPage from './components/Pages/PricingPage';
-import BlogIndex from './components/Blog/BlogIndex';
-import BlogPost from './components/Blog/BlogPost';
 
-// Legal Pages
-import PrivacyPolicy from './components/Pages/Legal/PrivacyPolicy';
-import TermsOfService from './components/Pages/Legal/TermsOfService';
-import CookiePolicy from './components/Pages/Legal/CookiePolicy';
+const HomePage = lazy(() => import('./components/Pages/HomePage'));
+const AboutPage = lazy(() => import('./components/Pages/AboutPage'));
+const ContactPage = lazy(() => import('./components/Pages/ContactPage'));
+const PricingPage = lazy(() => import('./components/Pages/PricingPage'));
+const BlogIndex = lazy(() => import('./components/Blog/BlogIndex'));
+const BlogPost = lazy(() => import('./components/Blog/BlogPost'));
+const PrivacyPolicy = lazy(() => import('./components/Pages/Legal/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./components/Pages/Legal/TermsOfService'));
+const CookiePolicy = lazy(() => import('./components/Pages/Legal/CookiePolicy'));
+const SuperAdminSignup = lazy(() => import('./components/Auth/SuperAdminSignup'));
+const CartOwnerSignup = lazy(() => import('./components/Auth/CartOwnerSignup'));
+const LoginTest = lazy(() => import('./components/Auth/LoginTest'));
 
-// SuperAdmin Components
-import SuperAdminDashboard from './components/SuperAdmin/Dashboard';
-import RestaurantManagement from './components/SuperAdmin/RestaurantManagement';
-import AdminUserManagement from './components/SuperAdmin/AdminUserManagement';
-import PlatformSettings from './components/SuperAdmin/PlatformSettings';
-import Reports from './components/SuperAdmin/Reports';
-import CartManagement from './components/SuperAdmin/CartManagement';
+const SuperAdminDashboard = lazy(() => import('./components/SuperAdmin/Dashboard'));
+const RestaurantManagement = lazy(() => import('./components/SuperAdmin/RestaurantManagement'));
+const AdminUserManagement = lazy(() => import('./components/SuperAdmin/AdminUserManagement'));
+const PlatformSettings = lazy(() => import('./components/SuperAdmin/PlatformSettings'));
+const Reports = lazy(() => import('./components/SuperAdmin/Reports'));
+const CartManagement = lazy(() => import('./components/SuperAdmin/CartManagement'));
 
-// Admin Components
-import AdminDashboard from './components/Admin/Dashboard';
-import MenuManagement from './components/Admin/MenuManagement';
-import TableManagement from './components/Admin/TableManagement';
-import OrderManagement from './components/Admin/OrderManagement';
-import StaffManagement from './components/Admin/StaffManagement';
-import AdminReports from './components/Admin/Reports';
-import CustomerFeedback from './components/Admin/CustomerFeedback';
-import AdminSettings from './components/Admin/Settings';
+const AdminDashboard = lazy(() => import('./components/Admin/Dashboard'));
+const MenuManagement = lazy(() => import('./components/Admin/MenuManagement'));
+const TableManagement = lazy(() => import('./components/Admin/TableManagement'));
+const OrderManagement = lazy(() => import('./components/Admin/OrderManagement'));
+const StaffManagement = lazy(() => import('./components/Admin/StaffManagement'));
+const AdminReports = lazy(() => import('./components/Admin/Reports'));
+const CustomerFeedback = lazy(() => import('./components/Admin/CustomerFeedback'));
+const AdminSettings = lazy(() => import('./components/Admin/Settings'));
 
-// Chef Components
-import LiveOrders from './components/Chef/LiveOrders';
-import OrderHistory from './components/Chef/OrderHistory';
-import ChefProfile from './components/Chef/ChefProfile';
+const LiveOrders = lazy(() => import('./components/Chef/LiveOrders'));
+const OrderHistory = lazy(() => import('./components/Chef/OrderHistory'));
+const ChefProfile = lazy(() => import('./components/Chef/ChefProfile'));
 
-// Customer Components (legacy MenuScreen removed — used localhost:3000 APIs)
-import { CafeSample, CafeSampleIndex } from './components/CafeSample/CafeSample';
+const CartOwnerDashboard = lazy(() => import('./components/CartOwner/Dashboard'));
+const CartMenuManagement = lazy(() => import('./components/CartOwner/MenuManagement'));
+const ExcelUpload = lazy(() => import('./components/CartOwner/ExcelUpload'));
+const CartOrders = lazy(() => import('./components/CartOwner/Orders'));
+const CartStaff = lazy(() => import('./components/CartOwner/Staff'));
+const VenueQr = lazy(() => import('./components/CartOwner/VenueQr'));
+const VenueTables = lazy(() => import('./components/CartOwner/Tables'));
+const GuestOrder = lazy(() => import('./components/CartOwner/GuestOrder'));
+const CartWorkerDashboard = lazy(() => import('./components/CartWorker/Dashboard'));
+const WorkerOrders = lazy(() => import('./components/CartWorker/WorkerOrders'));
 
-// Cart Owner Components
-import CartOwnerDashboard from './components/CartOwner/Dashboard';
-import CartMenuManagement from './components/CartOwner/MenuManagement';
-import ExcelUpload from './components/CartOwner/ExcelUpload';
-import CartOrders from './components/CartOwner/Orders';
-import CartStaff from './components/CartOwner/Staff';
-import VenueQr from './components/CartOwner/VenueQr';
-import VenueTables from './components/CartOwner/Tables';
-import GuestOrder from './components/CartOwner/GuestOrder';
+const CafeSampleIndex = lazy(() =>
+  import('./components/CafeSample/CafeSample').then((m) => ({ default: m.CafeSampleIndex }))
+);
+const CafeSamplePage = lazy(() =>
+  import('./components/CafeSample/CafeSample').then((m) => ({ default: m.CafeSample }))
+);
 
-// Cart Worker Components
-import CartWorkerDashboard from './components/CartWorker/Dashboard';
-import WorkerOrders from './components/CartWorker/WorkerOrders';
+function RouteFallback() {
+  return <div className="flex items-center justify-center min-h-screen" style={{ background: '#0b0806', color: '#c9bba3' }}>Loading…</div>;
+}
 
 function AppContent() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return <RouteFallback />;
   }
 
   return (
     <Router>
       <div className="App">
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* Public routes - accessible without authentication */}
           <Route path="/" element={<LandingPage />} />
@@ -106,8 +98,8 @@ function AppContent() {
           <Route path="/guest/seat/:seatKey" element={<GuestOrder />} />
           <Route path="/guest/:cartId" element={<GuestOrder />} />
           <Route path="/samples" element={<CafeSampleIndex />} />
-          <Route path="/samples/:variant" element={<CafeSample />} />
-          <Route path="/samples/:variant/book" element={<CafeSample />} />
+          <Route path="/samples/:variant" element={<CafeSamplePage />} />
+          <Route path="/samples/:variant/book" element={<CafeSamplePage />} />
           
           {/* SuperAdmin Routes */}
           <Route 
@@ -319,6 +311,7 @@ function AppContent() {
             } 
           />
         </Routes>
+        </Suspense>
       </div>
     </Router>
   );

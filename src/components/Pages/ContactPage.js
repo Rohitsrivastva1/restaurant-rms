@@ -70,7 +70,7 @@ const ContactPage = () => {
     <Shell active="contact" title="Contact Servya: Book a Demo or Ask Us">
       <header className="mk-pagehead">
         {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-        <img src="/images/hospitality/bar-pour.png?v=3" alt="A bartender pouring an amber cocktail with a flamed orange peel in front of a lit back bar" />
+        <img src="/images/hospitality/bar-pour.webp?v=4" alt="A bartender pouring an amber cocktail with a flamed orange peel in front of a lit back bar" />
         <div className="mk-scrim">
           <div className="mk-wrap">
             <div className="mk-kicker">Contact</div>

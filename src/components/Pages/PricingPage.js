@@ -58,7 +58,7 @@ export default function PricingPage() {
     <Shell active="pricing" title="Servya Pricing: Plans for Restaurants & Bars">
       <header className="mk-pagehead">
         {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-        <img src="/images/hospitality/hero-steak-alt.png" alt="A seared steak plated on a candlelit restaurant table" />
+        <img src="/images/hospitality/hero-steak-alt.webp?v=4" alt="A seared steak plated on a candlelit restaurant table" />
         <div className="mk-scrim">
           <div className="mk-wrap">
             <div className="mk-kicker">Pricing</div>
@@ -111,7 +111,7 @@ export default function PricingPage() {
         <div className="mk-wrap mk-split">
           <div className="mk-photo">
             {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-            <img src="/images/hospitality/bar-pour.png?v=3" alt="An amber cocktail being poured at a back bar" />
+            <img src="/images/hospitality/bar-pour.webp?v=4" alt="An amber cocktail being poured at a back bar" />
           </div>
           <div>
             <div className="mk-kicker">Hotels, groups & larger venues</div>

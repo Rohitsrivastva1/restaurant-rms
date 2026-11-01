@@ -21,7 +21,7 @@ export const POSTS = [
     dateLabel: '15 October 2026',
     read: '7 min read',
     kicker: 'Venues',
-    image: '/images/hospitality/hotel-breakfast.png',
+    image: '/images/hospitality/hotel-breakfast.webp?v=4',
     imageAlt: 'A hotel breakfast table set with coffee, juice, and plates in morning light',
     sections: [
       {
@@ -123,7 +123,7 @@ export const POSTS = [
     dateLabel: '12 October 2026',
     read: '6 min read',
     kicker: 'Service',
-    image: '/images/hospitality/hero-steak.png',
+    image: '/images/hospitality/hero-steak.webp?v=4',
     imageAlt: 'A seared steak on a dark plate in a dimly lit dining room',
     sections: [
       {
@@ -229,7 +229,7 @@ export const POSTS = [
     dateLabel: '8 October 2026',
     read: '6 min read',
     kicker: 'Reports',
-    image: '/images/hospitality/bar-cocktail.png',
+    image: '/images/hospitality/bar-cocktail.webp?v=4',
     imageAlt: 'A bartender pouring an amber cocktail in front of a lit back bar',
     sections: [
       {
@@ -330,7 +330,7 @@ export const POSTS = [
     dateLabel: '5 October 2026',
     read: '6 min read',
     kicker: 'Menu',
-    image: '/images/hospitality/dessert-gold.png',
+    image: '/images/hospitality/dessert-gold.webp?v=4',
     imageAlt: 'A plated dessert with gold leaf on a dark restaurant table',
     sections: [
       {
@@ -442,7 +442,7 @@ export const POSTS = [
     dateLabel: '28 September 2026',
     read: '6 min read',
     kicker: 'Kitchen',
-    image: '/images/hospitality/kitchen-pass.png',
+    image: '/images/hospitality/kitchen-pass.webp?v=4',
     imageAlt: 'Plates waiting at a restaurant kitchen pass under warm light',
     sections: [
       {
@@ -551,7 +551,7 @@ export const POSTS = [
     dateLabel: '18 September 2026',
     read: '6 min read',
     kicker: 'Owners',
-    image: '/images/hospitality/rooftop.png',
+    image: '/images/hospitality/rooftop.webp?v=4',
     imageAlt: 'A rooftop lounge table at dusk with a cocktail and small plates',
     sections: [
       {

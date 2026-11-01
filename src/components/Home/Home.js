@@ -10,6 +10,7 @@ import DashboardMock from './DashboardMock';
 import CtaBand from './CtaBand';
 import Footer from './Footer';
 import MobileCtaBar from './MobileCtaBar';
+import HospImg from './HospImg';
 import { formatPlanPrice, isIndia, planPriceNote } from '../../utils/planPrice';
 import { POSTS } from '../Blog/posts';
 
@@ -104,12 +105,10 @@ export default function Home() {
             <h2>Four tools. <em>One quiet system.</em></h2>
             <p className="hm-lead">Everything you need to take orders, run the kitchen and understand your business, without adding noise to the floor.</p>
             <FeatureSplit numeral="01" title="QR table ordering" body="Every table gets its own QR code. Guests scan it, browse the menu and place their order from their own phone, with no app to download." aside="Scan. Browse. Order.">
-              {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-              <img src="/images/hospitality/rooftop.png?v=3" alt="Rooftop lounge table at dusk with a cocktail and small plates" />
+              <HospImg name="rooftop" alt="Rooftop lounge table at dusk with a cocktail and small plates" width={646} height={418} />
             </FeatureSplit>
             <FeatureSplit flip numeral="02" title="A kitchen board that keeps the pass clear" body="New orders go straight to the kitchen screen with the table and every item listed, so no one has to carry a docket or shout it across the floor." aside="Fired. Plated. Out.">
-              {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-              <img src="/images/hospitality/hero-steak-alt.png" alt="A seared steak plated in a candlelit dining room" />
+              <HospImg name="hero-steak-alt" alt="A seared steak plated in a candlelit dining room" width={640} height={620} />
             </FeatureSplit>
             <FeatureSplit numeral="03" title="Reports that show what’s working" body="See your orders and sales on one dashboard: what sells, at which tables, and on which days." aside="Know your best night.">
               <div className="hm-chart" role="img" aria-label="Weekly sales chart from Monday to Sunday, with Saturday as the busiest day.">

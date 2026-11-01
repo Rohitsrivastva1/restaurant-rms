@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Restaurant Management System"
+      content="Servya puts your menu on every table as a QR code and sends each order straight to the kitchen screen."
     />
     <!-- CSP also set via Render headers (render.yaml). Meta is a fallback. -->
     <meta
@@ -15,25 +15,12 @@
       content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com; connect-src 'self' https://api.schoolabe.com https://*.onrender.com https://api.razorpay.com https://lumberjack.razorpay.com; frame-src https://api.razorpay.com https://checkout.razorpay.com"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600;700&family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,500;1,6..96,600&family=Caveat:wght@700&family=DM+Sans:wght@500;600;700;800&family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Lilita+One&family=Manrope:wght@500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
-    <!-- Razorpay checkout.js is loaded only when a payment is started -->
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>Restaurant Management System</title>
+    <link rel="preload" as="image" href="%PUBLIC_URL%/images/hospitality/hero-steak-alt.webp?v=4" type="image/webp" fetchpriority="high" />
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <title>Servya: QR Ordering &amp; Kitchen Board</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
